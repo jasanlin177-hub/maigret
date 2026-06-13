@@ -36445,9 +36445,8 @@
             "checkType": "status_code",
             "urlMain": "https://www.cw.com.tw/",
             "url": "https://www.cw.com.tw/author/{username}",
-            "usernameClaimed": "cw",
+            "usernameClaimed": "4900",
             "usernameUnclaimed": "noonewouldeverusethis7",
-            "disabled": true,
             "alexaRank": 3000
         },
         "HikingNote": {
@@ -36517,13 +36516,15 @@
                 "taiwan",
                 "zh_TW"
             ],
-            "checkType": "status_code",
+            "checkType": "message",
             "urlMain": "https://www.koc.com.tw/",
             "url": "https://www.koc.com.tw/author/{username}/",
-            "usernameClaimed": "kocpc",
+            "usernameClaimed": "a-da",
             "usernameUnclaimed": "noonewouldeverusethis7",
             "alexaRank": 35000,
-            "disabled": true
+            "presenseStrs": [
+                "<meta property=\"og:type\" content=\"profile\""
+            ]
         },
         "BusinessNext": {
             "tags": [
@@ -36536,10 +36537,9 @@
             "checkType": "status_code",
             "urlMain": "https://www.bnext.com.tw/",
             "url": "https://www.bnext.com.tw/author/{username}",
-            "usernameClaimed": "bnext",
+            "usernameClaimed": "4533",
             "usernameUnclaimed": "noonewouldeverusethis7",
-            "alexaRank": 8000,
-            "disabled": true
+            "alexaRank": 8000
         },
         "TechNews": {
             "tags": [
@@ -36551,10 +36551,9 @@
             "checkType": "status_code",
             "urlMain": "https://technews.tw/",
             "url": "https://technews.tw/author/{username}/",
-            "usernameClaimed": "technews",
+            "usernameClaimed": "tri",
             "usernameUnclaimed": "noonewouldeverusethis7",
-            "alexaRank": 6000,
-            "disabled": true
+            "alexaRank": 6000
         },
         "Anue": {
             "tags": [
@@ -36664,10 +36663,9 @@
             "checkType": "status_code",
             "urlMain": "https://news.tvbs.com.tw/",
             "url": "https://news.tvbs.com.tw/author/{username}",
-            "usernameClaimed": "tvbs",
+            "usernameClaimed": "wang-xin-qiao",
             "usernameUnclaimed": "noonewouldeverusethis7",
-            "alexaRank": 4000,
-            "disabled": true
+            "alexaRank": 4000
         },
         "MirrorMedia": {
             "tags": [
