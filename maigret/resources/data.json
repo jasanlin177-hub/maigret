@@ -36674,13 +36674,15 @@
                 "taiwan",
                 "zh_TW"
             ],
-            "checkType": "status_code",
+            "checkType": "message",
             "urlMain": "https://www.mirrormedia.mg/",
             "url": "https://www.mirrormedia.mg/author/{username}",
-            "usernameClaimed": "mirrormedia",
+            "usernameClaimed": "191",
             "usernameUnclaimed": "noonewouldeverusethis7",
             "alexaRank": 6000,
-            "disabled": true
+            "presenseStrs": [
+                "<meta property=\"og:url\" content=\"https://www.mirrormedia.mg/author/"
+            ]
         },
         "BusinessWeekly": {
             "tags": [
@@ -36692,7 +36694,7 @@
             "checkType": "status_code",
             "urlMain": "https://www.businessweekly.com.tw/",
             "url": "https://www.businessweekly.com.tw/author/{username}",
-            "usernameClaimed": "bw",
+            "usernameClaimed": "businessweekly",
             "usernameUnclaimed": "noonewouldeverusethis7",
             "alexaRank": 5500,
             "disabled": true
@@ -37040,10 +37042,9 @@
             "checkType": "status_code",
             "urlMain": "https://www.cheers.com.tw/",
             "url": "https://www.cheers.com.tw/author/{username}",
-            "usernameClaimed": "1",
-            "usernameUnclaimed": "99999999",
-            "alexaRank": 8000,
-            "disabled": true
+            "usernameClaimed": "68",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 8000
         },
         "Cookpad": {
             "tags": [
@@ -37054,11 +37055,10 @@
             ],
             "checkType": "status_code",
             "urlMain": "https://cookpad.com/tw/",
-            "url": "https://cookpad.com/tw/users/{username}",
-            "usernameClaimed": "1",
-            "usernameUnclaimed": "99999999",
-            "alexaRank": 8000,
-            "disabled": true
+            "url": "https://cookpad.com/tw/使用者/{username}",
+            "usernameClaimed": "114916002",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 8000
         },
         "TechIsland": {
             "tags": [
@@ -37083,13 +37083,15 @@
                 "taiwan",
                 "zh_TW"
             ],
-            "checkType": "status_code",
+            "checkType": "message",
             "urlMain": "https://free.com.tw/",
             "url": "https://free.com.tw/author/{username}/",
-            "usernameClaimed": "admin",
+            "usernameClaimed": "pseric",
             "usernameUnclaimed": "noonewouldeverusethis7",
             "alexaRank": 15000,
-            "disabled": true
+            "presenseStrs": [
+                "<h1 class=\"page-title\">"
+            ]
         },
         "UDesign": {
             "tags": [
@@ -37312,10 +37314,9 @@
             "checkType": "status_code",
             "urlMain": "https://www.gvm.com.tw/",
             "url": "https://www.gvm.com.tw/author/{username}",
-            "usernameClaimed": "gvm",
+            "usernameClaimed": "9",
             "usernameUnclaimed": "noonewouldeverusethis7",
-            "alexaRank": 5000,
-            "disabled": true
+            "alexaRank": 5000
         },
         "StormMG": {
             "tags": [
