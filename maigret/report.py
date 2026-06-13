@@ -62,7 +62,8 @@ REPORTS SAVING
 
 
 def save_csv_report(filename: str, username: str, results: dict):
-    with open(filename, "w", newline="", encoding="utf-8") as f:
+    # utf-8-sig 加入 BOM，Excel 開啟時自動識別 UTF-8 而不顯示亂碼
+    with open(filename, "w", newline="", encoding="utf-8-sig") as f:
         generate_csv_report(username, results, f)
 
 
@@ -265,9 +266,9 @@ def get_plaintext_report(context: dict) -> str:
     interests = list(map(lambda x: x[0], context.get('interests_tuple_list', [])))
     countries = list(map(lambda x: x[0], context.get('countries_tuple_list', [])))
     if countries:
-        output += f'Countries: {", ".join(countries)}\n'
+        output += f'所在國家 (Countries): {", ".join(countries)}\n'
     if interests:
-        output += f'Interests (tags): {", ".join(interests)}\n'
+        output += f'興趣標籤 (Interests): {", ".join(interests)}\n'
     return output.strip()
 
 
@@ -425,7 +426,8 @@ def generate_report_template(is_pdf: bool):
     """
 
     def get_resource_content(filename):
-        return open(os.path.join(maigret_path, "resources", filename)).read()
+        # 明確指定 utf-8，避免 Windows 用 cp950 讀取含繁中字元的模板
+        return open(os.path.join(maigret_path, "resources", filename), encoding="utf-8").read()
 
     maigret_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -509,7 +511,7 @@ def generate_report_context(username_results: list):
                     # suppose country
                     if k in ["country", "locale"]:
                         try:
-                            if is_country_tag(v):
+                            if is_country_tag(k):
                                 country = pycountry.countries.get(alpha_2=v)
                                 tag = country.alpha_2.lower()  # type: ignore[union-attr]
                             else:
@@ -541,16 +543,22 @@ def generate_report_context(username_results: list):
                     tags[t] = tags.get(t, 0) + 1
 
         brief_text.append(
-            f"Search by {id_type} {username} returned {found_accounts} accounts."
+            f"以 {id_type}「{username}」搜尋，找到 {found_accounts} 個帳號。"
+            f" (Search by {id_type} {username} returned {found_accounts} accounts.)"
         )
 
         if new_ids:
             ids_list = []
             for u, t in new_ids:
                 ids_list.append(f"{u} ({t})" if t != "username" else u)
-            brief_text.append("Found target's other IDs: " + ", ".join(ids_list) + ".")
+            brief_text.append(
+                "發現目標的其他識別碼 (Other IDs found): " + ", ".join(ids_list) + "。"
+            )
 
-    brief_text.append(f"Extended info extracted from {extended_info_count} accounts.")
+    brief_text.append(
+        f"從 {extended_info_count} 個帳號擷取延伸資訊。"
+        f" (Extended info extracted from {extended_info_count} accounts.)"
+    )
 
     brief = " ".join(brief_text).strip()
     tuple_sort = lambda d: sorted(d, key=lambda x: x[1], reverse=True)
@@ -577,24 +585,312 @@ def generate_report_context(username_results: list):
     }
 
 
+_HTTP_STATUS_ZH = {
+    0:   "連線失敗（逾時或無回應）",
+    200: "成功回應",
+    301: "永久轉址",
+    302: "暫時轉址",
+    400: "請求格式錯誤",
+    401: "需要身份驗證",
+    403: "拒絕存取",
+    404: "找不到頁面",
+    405: "不允許此方法",
+    410: "已永久移除",
+    429: "請求次數過多",
+    500: "伺服器內部錯誤",
+    502: "閘道錯誤",
+    503: "服務暫時無法使用",
+    504: "閘道逾時",
+}
+
+_EXISTS_ZH = {
+    "Available":  "帳號存在",
+    "Claimed":    "帳號已確認存在",
+    "Unknown":    "未知（無法判斷）",
+    "Not Found":  "帳號不存在",
+    "Assumed":    "推測存在",
+    "Error":      "查詢發生錯誤",
+}
+
+_SITE_NAME_ZH = {
+    # ── 1. 全球主流社群與通訊 ──────────────────────────────────────
+    "Instagram":        "Instagram（IG）",
+    "Threads":          "Threads（串串）",
+    "Facebook":         "Facebook（臉書）",
+    "Twitter":          "推特（現更名為 X）",
+    "Telegram":         "Telegram（紙飛機）",
+    "Snapchat":         "Snapchat（色卡特）",
+    "Pinterest":        "品趣志",
+    "Tumblr":           "湯不熱",
+    "Plurk":            "噗浪",
+    "Weibo":            "微博",
+    "Discord":          "Discord（DC）",
+    "TikTok":           "TikTok（抖音）",
+    "Bluesky":          "Bluesky（去中心化社群）",
+    "Mastodon":         "長毛象（聯邦社群）",
+    "VK":               "VKontakte（俄國臉書）",
+    "Linktree":         "Linktree（多連結工具）",
+    "Dcard":            "Dcard",
+
+    # ── 2. 臺灣本土知名網站 ───────────────────────────────────────
+    "Pixnet":           "痞客邦",
+    "iThome":           "iThome 電腦報",
+    "iCook":            "愛料理",
+    "HackMD":           "HackMD（協作筆記）",
+    "INSIDE":           "INSIDE 硬塞",
+    "TNL":              "關鍵評論網",
+    "Vocus":            "方格子",
+    "Zeczec":           "嘖嘖",
+    "flyingV":          "flyingV 群眾募資",
+    "Yourator":         "Yourator 數位人才媒合",
+    "StockFeel":        "股感知識庫",
+    "CakeResume":       "CakeResume 求職履歷",
+    "StreetVoice":      "街聲 獨立音樂",
+    "PanSci":           "泛科學",
+    "SoFree":           "SoFree 心得筆記",
+    "SoFun":            "硬是要學",
+    "ITHelp":           "iT 邦幫忙",
+    "Matters":          "Matters（Web3 創作社群）",
+    "LikeCoin":         "讚賞幣",
+
+    # ── 3. 開發者、程式設計與技術社群 ────────────────────────────
+    "GitHub":           "GitHub",
+    "GitHubGist":       "GitHub Gist",
+    "GitLab":           "GitLab",
+    "StackOverflow":    "Stack Overflow",
+    "npmjs":            "NPM",
+    "NPM-Package":      "NPM",
+    "PyPI":             "PyPI（Python 套件庫）",
+    "HackerNews":       "Hacker News",
+    "HuggingFace":      "Hugging Face（抱抱臉）",
+    "Dev":              "DEV Community",
+    "Gitea":            "Gitea",
+    "Codeberg":         "Codeberg",
+    "Gitee":            "碼雲（Gitee）",
+    "LeetCode":         "LeetCode（刷題網）",
+    "Codepen":          "CodePen",
+    "Packagist":        "Packagist",
+    "JSFiddle":         "JSFiddle",
+    "Laracast":         "Laracasts",
+    "HackerOne":        "HackerOne",
+    "Hackaday":         "Hackaday",
+    "HackerNoon":       "HackerNoon",
+    "RubyGems":         "RubyGems",
+    "RapidAPI":         "RapidAPI",
+    "Codementor":       "Codementor",
+    "Topcoder":         "Topcoder",
+    "Codeforces":       "Codeforces",
+    "CTFtime":          "CTFtime（資安競賽平台）",
+    "Freecodecamp":     "freeCodeCamp",
+    "HackTheBox":       "Hack The Box",
+    "TryHackMe":        "TryHackMe",
+    "Replit":           "Replit",
+    "Repl.it":          "Replit",
+    "W3Schools":        "W3Schools",
+    "SourceForge":      "SourceForge",
+    "Keybase":          "Keybase（安全加密身分）",
+    "GeeksforGeeks":    "GeeksforGeeks",
+    "CTAN":             "CTAN（LaTeX 套件庫）",
+
+    # ── 4. 遊戲、電競與動漫社群 ──────────────────────────────────
+    "Steam":            "Steam（蒸氣平台）",
+    "Steam (Group)":    "Steam 群組",
+    "Twitch":           "Twitch（圖奇）",
+    "Roblox":           "機器磚塊（羅布樂思）",
+    "Xbox":             "Xbox",
+    "PlayStation":      "PlayStation",
+    "MyAnimeList":      "MyAnimeList（動漫評分誌）",
+    "AnimeNewsNetwork": "動漫新聞網路（ANN）",
+    "Chess":            "Chess.com",
+    "Lichess":          "Lichess（開源西洋棋）",
+    "Newgrounds":       "Newgrounds",
+    "Speedrun":         "Speedrun.com（速通紀錄）",
+    "Kongregate":       "Kongregate",
+    "Wowhead":          "Wowhead（魔獸世界資料庫）",
+    "OP.GG":            "OP.GG（英雄聯盟戰績）",
+    "GOG":              "GOG.com",
+    "GamesRadar":       "GamesRadar+",
+    "Polygon":          "Polygon（電玩媒體）",
+    "DLive":            "DLive",
+
+    # ── 5. 影音、音樂與多媒體平台 ────────────────────────────────
+    "YouTube":          "YouTube（YT）",
+    "Vimeo":            "Vimeo",
+    "SoundCloud":       "SoundCloud（死耗子）",
+    "Mixcloud":         "Mixcloud",
+    "Spotify":          "Spotify（強迫聽）",
+    "DailyMotion":      "Dailymotion",
+    "Bandcamp":         "Bandcamp",
+    "Odysee":           "Odysee（去中心化影音）",
+    "Freesound":        "Freesound（開源聲音素材庫）",
+    "Last.fm":          "Last.fm",
+    "Smule":            "Smule（歌唱 App）",
+    "ReverbNation":     "ReverbNation",
+
+    # ── 6. 內容創作、網誌、電子報與 CMS ─────────────────────────
+    "WordPress":        "WordPress",
+    "WordPressOrg":     "WordPress 社群",
+    "Blogger":          "Blogger（部落格）",
+    "Medium":           "Medium",
+    "Substack":         "Substack（電子報）",
+    "Wix":              "Wix（線上架站）",
+    "Weebly":           "Weebly",
+    "Disqus":           "Disqus（第三方評論）",
+    "LiveJournal":      "LiveJournal",
+    "WriteAs":          "Write.as",
+    "Note":             "note（日本創作平台）",
+    "Paragraph":        "Paragraph（Web3 創作）",
+
+    # ── 7. 設計、創意、圖庫與 UI/UX ─────────────────────────────
+    "Freepik":          "Freepik",
+    "DeviantArt":       "DeviantArt（DA）",
+    "DeviantART":       "DeviantArt（DA）",
+    "Behance":          "Behance",
+    "Dribbble":         "Dribbble（籃球網）",
+    "Figma":            "Figma",
+    "ArtStation":       "ArtStation",
+    "ThemeForest":      "ThemeForest（佈景主題市場）",
+    "Codecanyon":       "CodeCanyon",
+    "CreativeMarket":   "Creative Market",
+    "Imgur":            "Imgur",
+    "Giphy":            "Giphy（GIF 圖庫）",
+    "Flickr":           "Flickr",
+    "500px":            "500px（攝影社群）",
+    "Redbubble":        "Redbubble（設計師周邊）",
+    "SmugMug":          "SmugMug",
+    "Imgflip":          "Imgflip（梗圖生成器）",
+    "99designs":        "99designs（設計外包）",
+    "MyMiniFactory":    "MyMiniFactory（3D 列印社群）",
+    "CGTrader":         "CGTrader（3D 模型市場）",
+    "Domestika":        "Domestika（創意設計課程）",
+    "Coroflot":         "Coroflot（設計師求職）",
+    "Lomography":       "Lomography（底片攝影社群）",
+    "SlideShare":       "SlideShare（投影片分享）",
+
+    # ── 8. 學術、百科與知識問答 ──────────────────────────────────
+    "Wikipedia":        "維基百科",
+    "Wikidata":         "維基數據",
+    "ResearchGate":     "ResearchGate（學術社群）",
+    "Quora":            "Quora（美國知乎）",
+    "Fandom":           "Fandom（粉絲 Wiki）",
+    "GoodReads":        "Goodreads（書評社群）",
+    "LibraryThing":     "LibraryThing（線上書目）",
+
+    # ── 9. 群眾募資、求職外包與商務網路 ─────────────────────────
+    "Kickstarter":      "Kickstarter（群眾募資始祖）",
+    "Gofundme":         "GoFundMe（公益募資）",
+    "BuyMeACoffee":     "Buy Me a Coffee（創作者贊助）",
+    "Ko-fi":            "Ko-fi（創作者贊助）",
+    "Patreon":          "Patreon（定額訂閱贊助）",
+    "OpenCollective":   "Open Collective（開源財務募資）",
+    "Fiverr":           "Fiverr（自由接案網）",
+    "Freelancer":       "Freelancer（自由職業外包）",
+    "Upwork":           "Upwork（高階外包接案）",
+    "LinkedIn":         "領英",
+    "Xing":             "XING（歐洲版領英）",
+    "ProductHunt":      "Product Hunt（新品發佈選物）",
+    "Calendly":         "Calendly（行程預約）",
+    "GooglePlayStore":  "Google Play 商店",
+    "IFTTT":            "IFTTT（自動化串接）",
+    "Gravatar":         "Gravatar（全球頭像）",
+
+    # ── 10. 科技、新聞媒體與論壇 ─────────────────────────────────
+    "Reddit":           "Reddit（美國 PTT）",
+    "CNET":             "CNET（科技評論）",
+    "TheVerge":         "The Verge",
+    "Slashdot":         "Slashdot（極客論壇）",
+    "TechRepublic":     "TechRepublic",
+    "TechSpot":         "TechSpot",
+    "BuzzFeed":         "BuzzFeed",
+    "Flipboard":        "Flipboard（翻閱雜誌）",
+
+    # ── 11. 生活、美食、旅遊 ─────────────────────────────────────
+    "TripAdvisor":      "貓途鷹（Tripadvisor）",
+    "Foursquare":       "Foursquare（打卡始祖）",
+    "AllRecipes":       "Allrecipes（食譜分享）",
+    "OpenStreetMap":    "開放街圖（OSM）",
+    "Geocaching":       "地理藏寶（GPS 尋寶）",
+    "Flightradar24":    "Flightradar24（航班雷達）",
+    "Windy":            "Windy（氣象風速雷達）",
+
+    # ── 12. 效率工具與雲端協作 ───────────────────────────────────
+    "Trello":           "Trello（看板專案管理）",
+    "Slack":            "Slack（企業通訊軟體）",
+    "Pastebin":         "Pastebin（文字暫存）",
+    "Instapaper":       "Instapaper（稍後閱讀）",
+    "Bitly":            "Bitly（縮網址）",
+    "Bit.ly":           "Bitly（縮網址）",
+
+    # ── 13. 娛樂、影評與迷因 ─────────────────────────────────────
+    "Letterboxd":       "Letterboxd（電影評分社群）",
+    "Rottentomatoes":   "爛番茄",
+    "Genius":           "Genius（歌詞解析）",
+    "iFunny":           "iFunny（迷因圖 App）",
+    "Coub":             "Coub（短循環影音）",
+    "Myspace":          "Myspace（我的空間）",
+
+    # ── 14. 區域性熱門社群 ───────────────────────────────────────
+    "Naver":            "NAVER（韓國第一搜尋）",
+    "Tistory":          "Tistory（韓國部落格）",
+    "Namuwiki":         "樹維基（韓國民間百科）",
+    "Dcinside":         "DC Inside（韓國論壇）",
+    "Habr":             "Habr（俄國 IT 社群）",
+    "Douban":           "豆瓣",
+    "Ameblo":           "Ameba 部落格（日本）",
+    "Booth":            "BOOTH（Pixiv 同人電商）",
+    "Velog":            "Velog（韓國技術網誌）",
+
+    # ── 15. 其他特定領域 ─────────────────────────────────────────
+    "Duolingo":         "多鄰國（語言學習）",
+    "Wattpad":          "Wattpad（網路小說平台）",
+    "Instructables":    "Instructables（DIY 教學）",
+    "AlternativeTo":    "AlternativeTo（軟體替代比較）",
+    "TVTropes":         "TV Tropes（影視梗百科）",
+    "TradingView":      "TradingView（金融K線分析）",
+    "Untappd":          "Untappd（啤酒品酒打卡）",
+    "Couchsurfing":     "沙發衝浪（旅行換宿）",
+    "AllKPop":          "Allkpop（韓流英文媒體）",
+    "iNaturalist":      "iNaturalist（物種觀察記錄）",
+    "Venmo":            "Venmo（美國行動支付）",
+    "Polymarket":       "Polymarket（去中心化預測市場）",
+    "Change":           "Change.org（線上請願聯署）",
+}
+
+
 def generate_csv_report(username: str, results: dict, csvfile):
     writer = csv.writer(csvfile)
     writer.writerow(
-        ["username", "name", "url_main", "url_user", "exists", "http_status"]
+        [
+            "使用者名稱 (username)",
+            "站點名稱 (name)",
+            "站點中文名稱",
+            "站點首頁 (url_main)",
+            "個人頁網址 (url_user)",
+            "帳號狀態 (exists)",
+            "帳號狀態說明",
+            "HTTP狀態碼 (http_status)",
+            "HTTP說明",
+        ]
     )
     for site in results:
-        # TODO: fix the reason
         status = 'Unknown'
         if "status" in results[site]:
             status = str(results[site]["status"].status)
+        http_code = results[site].get("http_status", 0)
+        site_zh = _SITE_NAME_ZH.get(site, "")
+        status_zh = _EXISTS_ZH.get(status, "")
+        http_zh = _HTTP_STATUS_ZH.get(int(http_code) if http_code else 0, "")
         writer.writerow(
             [
                 username,
                 site,
+                site_zh,
                 results[site].get("url_main", ""),
                 results[site].get("url_user", ""),
                 status,
-                results[site].get("http_status", 0),
+                status_zh,
+                http_code,
+                http_zh,
             ]
         )
 
