@@ -46,5 +46,12 @@ build
 LLM
 lib
 
+# 敏感設定與憑證
+.env
+*.env
+config.json
+secrets.json
+diag_output.txt
+
 # Sphinx i18n: .mo are compiled from .po at build time
 docs/source/locale/**/*.mo
