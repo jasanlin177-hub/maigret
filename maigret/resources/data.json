@@ -6078,7 +6078,8 @@
             "usernameClaimed": "blue",
             "usernameUnclaimed": "noonewouldeverusethis7",
             "tags": [
-                "coding"
+                "coding",
+                "taiwan"
             ],
             "alexaRank": 2877
         },
@@ -6764,22 +6765,21 @@
         "Plurk": {
             "tags": [
                 "social",
-                "tw",
-                "us"
+                "taiwan",
+                "zh_TW"
             ],
-            "urlProbe": "https://gab.com/api/v1/account_by_username/{username}",
-            "checkType": "status_code",
+            "checkType": "message",
+            "urlMain": "https://www.plurk.com/",
+            "url": "https://www.plurk.com/{username}",
             "presenseStrs": [
-                "display_name"
+                "Plurk ["
             ],
             "absenceStrs": [
-                "Record not found"
+                "User Not Found!"
             ],
-            "alexaRank": 4023,
-            "urlMain": "https://gab.com/",
-            "url": "https://gab.com/{username}",
-            "usernameClaimed": "alex",
-            "usernameUnclaimed": "noonewouldeverusethis777"
+            "usernameClaimed": "plurk",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 4023
         },
         "MyFitnessPal": {
             "disabled": true,
@@ -34085,10 +34085,16 @@
             "url": "https://premium.chat/{username}"
         },
         "pttweb.cc": {
+            "tags": [
+                "forum",
+                "taiwan",
+                "zh_TW"
+            ],
             "checkType": "status_code",
+            "urlMain": "https://www.pttweb.cc/",
+            "url": "https://pttweb.cc/user/{username}",
             "usernameClaimed": "adam",
-            "usernameUnclaimed": "noonewouldeverusethis7",
-            "url": "https://pttweb.cc/user/{username}"
+            "usernameUnclaimed": "noonewouldeverusethis7"
         },
         "qiita.com": {
             "checkType": "status_code",
@@ -36078,6 +36084,1354 @@
             ],
             "usernameClaimed": "paulburke",
             "usernameUnclaimed": "noonewouldeverusethis7"
+        },
+        "Dcard": {
+            "tags": [
+                "forum",
+                "social",
+                "taiwan",
+                "zh_TW"
+            ],
+            "disabled": true,
+            "checkType": "message",
+            "urlMain": "https://www.dcard.tw/",
+            "url": "https://www.dcard.tw/@{username}",
+            "urlProbe": "https://www.dcard.tw/service/api/v2/users/{username}",
+            "presenseStrs": [
+                "\"id\":"
+            ],
+            "absenceStrs": [
+                "\"error\":"
+            ],
+            "usernameClaimed": "dcard",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 1200
+        },
+        "Bahamut": {
+            "tags": [
+                "gaming",
+                "forum",
+                "taiwan",
+                "zh_TW"
+            ],
+            "disabled": true,
+            "regexCheck": "^[a-zA-Z0-9_]{2,20}$",
+            "checkType": "message",
+            "urlMain": "https://www.gamer.com.tw/",
+            "url": "https://home.gamer.com.tw/homeindex.php?owner={username}",
+            "presenseStrs": [
+                "的小屋"
+            ],
+            "absenceStrs": [
+                "找不到此小屋"
+            ],
+            "usernameClaimed": "GNN",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 800
+        },
+        "iThome": {
+            "tags": [
+                "tech",
+                "forum",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://ithelp.ithome.com.tw/",
+            "url": "https://ithelp.ithome.com.tw/users/{username}/questions",
+            "usernameClaimed": "20000001",
+            "usernameUnclaimed": "99999999",
+            "alexaRank": 2500
+        },
+        "Matters": {
+            "tags": [
+                "writing",
+                "social",
+                "taiwan"
+            ],
+            "checkType": "message",
+            "urlMain": "https://matters.town/",
+            "url": "https://matters.town/@{username}",
+            "urlProbe": "https://server.matters.news/graphql",
+            "requestMethod": "POST",
+            "requestPayload": {
+                "query": "{{ user(input: {{ userName: \"{username}\" }}) {{ id displayName }} }}"
+            },
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "presenseStrs": [
+                "\"displayName\":"
+            ],
+            "absenceStrs": [
+                "\"user\":null"
+            ],
+            "usernameClaimed": "matters",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 8000
+        },
+        "Pixnet": {
+            "tags": [
+                "blog",
+                "social",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "message",
+            "urlMain": "https://www.pixnet.net/",
+            "url": "https://{username}.pixnet.net/blog",
+            "presenseStrs": [
+                "的部落格 | "
+            ],
+            "absenceStrs": [
+                "找不到您要瀏覽的部落格"
+            ],
+            "usernameClaimed": "pixnet",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 500
+        },
+        "Vocus": {
+            "tags": [
+                "writing",
+                "blog",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://vocus.cc/",
+            "url": "https://vocus.cc/user/{username}",
+            "usernameClaimed": "vocus",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 5000
+        },
+        "CakeResume": {
+            "tags": [
+                "professional",
+                "career",
+                "taiwan"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.cake.me/",
+            "url": "https://www.cake.me/me/{username}",
+            "usernameClaimed": "cakeresume",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 8000
+        },
+        "StreetVoice": {
+            "tags": [
+                "music",
+                "social",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://streetvoice.com/",
+            "url": "https://streetvoice.com/{username}/",
+            "usernameClaimed": "123",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 10000
+        },
+        "iCook": {
+            "tags": [
+                "food",
+                "social",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://icook.tw/",
+            "url": "https://icook.tw/users/{username}",
+            "usernameClaimed": "101",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 3000
+        },
+        "Mobile01": {
+            "tags": [
+                "forum",
+                "tech",
+                "taiwan",
+                "zh_TW"
+            ],
+            "disabled": true,
+            "checkType": "message",
+            "urlMain": "https://www.mobile01.com/",
+            "url": "https://www.mobile01.com/profile.php?member={username}",
+            "presenseStrs": [
+                "class=\"profile-"
+            ],
+            "absenceStrs": [
+                "找不到此會員",
+                "帳號不存在",
+                "會員不存在"
+            ],
+            "usernameClaimed": "mobile01",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 1000
+        },
+        "Timelog": {
+            "tags": [
+                "blog",
+                "social",
+                "taiwan",
+                "zh_TW"
+            ],
+            "disabled": true,
+            "checkType": "status_code",
+            "urlMain": "https://www.timelog.to/",
+            "url": "https://www.timelog.to/{username}",
+            "usernameClaimed": "timelog",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 20000
+        },
+        "Zeczec": {
+            "tags": [
+                "crowdfunding",
+                "social",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.zeczec.com/",
+            "url": "https://www.zeczec.com/users/{username}",
+            "usernameClaimed": "zeczec",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 15000
+        },
+        "LikeCoin": {
+            "tags": [
+                "writing",
+                "blog",
+                "taiwan"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://like.co/",
+            "url": "https://like.co/{username}",
+            "usernameClaimed": "likecoin",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 20000
+        },
+        "Yourator": {
+            "tags": [
+                "professional",
+                "career",
+                "taiwan"
+            ],
+            "checkType": "message",
+            "urlMain": "https://www.yourator.co/",
+            "url": "https://www.yourator.co/companies/{username}",
+            "presenseStrs": [
+                "company_id"
+            ],
+            "absenceStrs": [
+                "\"error\":"
+            ],
+            "usernameClaimed": "gogoro",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 15000
+        },
+        "Ruten": {
+            "tags": [
+                "shopping",
+                "taiwan",
+                "zh_TW"
+            ],
+            "disabled": true,
+            "checkType": "message",
+            "urlMain": "https://www.ruten.com.tw/",
+            "url": "https://class.ruten.com.tw/user/index00.php?s={username}",
+            "presenseStrs": [
+                "的賣場"
+            ],
+            "absenceStrs": [
+                "此帳號不存在",
+                "找不到此會員",
+                "帳號不存在"
+            ],
+            "usernameClaimed": "ruten",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 1500
+        },
+        "TNL": {
+            "tags": [
+                "news",
+                "writing",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.thenewslens.com/",
+            "url": "https://www.thenewslens.com/author/{username}",
+            "usernameClaimed": "tnl",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 5000
+        },
+        "PanSci": {
+            "tags": [
+                "writing",
+                "blog",
+                "science",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "message",
+            "urlMain": "https://pansci.asia/",
+            "url": "https://pansci.asia/archives/author/{username}",
+            "absenceStrs": [
+                "archives/author\" />"
+            ],
+            "usernameClaimed": "pansci",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 10000
+        },
+        "StockFeel": {
+            "tags": [
+                "finance",
+                "writing",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.stockfeel.com.tw/",
+            "url": "https://www.stockfeel.com.tw/author/{username}",
+            "usernameClaimed": "stockfeel",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 15000
+        },
+        "flyingV": {
+            "tags": [
+                "crowdfunding",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.flyingv.cc/",
+            "url": "https://www.flyingv.cc/users/{username}",
+            "usernameClaimed": "1",
+            "usernameUnclaimed": "99999999",
+            "alexaRank": 20000
+        },
+        "SoFree": {
+            "tags": [
+                "blog",
+                "coding",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://sofree.cc/",
+            "url": "https://sofree.cc/author/{username}",
+            "usernameClaimed": "sofree",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 20000
+        },
+        "KKTIX": {
+            "tags": [
+                "events",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://kktix.com/",
+            "url": "https://kktix.com/{username}/events",
+            "usernameClaimed": "kktix",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "disabled": true,
+            "alexaRank": 3000
+        },
+        "Backpackers": {
+            "tags": [
+                "travel",
+                "forum",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.backpackers.com.tw/",
+            "url": "https://www.backpackers.com.tw/forum/member.php?u={username}",
+            "usernameClaimed": "1",
+            "usernameUnclaimed": "99999999",
+            "disabled": true,
+            "alexaRank": 4000
+        },
+        "INSIDE": {
+            "tags": [
+                "news",
+                "coding",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.inside.com.tw/",
+            "url": "https://www.inside.com.tw/author/{username}",
+            "usernameClaimed": "inside",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 5000
+        },
+        "CommonWealth": {
+            "tags": [
+                "news",
+                "finance",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.cw.com.tw/",
+            "url": "https://www.cw.com.tw/author/{username}",
+            "usernameClaimed": "cw",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "disabled": true,
+            "alexaRank": 3000
+        },
+        "HikingNote": {
+            "tags": [
+                "travel",
+                "health",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://hiking.biji.co/",
+            "url": "https://hiking.biji.co/member/{username}",
+            "usernameClaimed": "1",
+            "usernameUnclaimed": "99999999",
+            "disabled": true,
+            "alexaRank": 10000
+        },
+        "SoFun": {
+            "tags": [
+                "tech",
+                "blog",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.soft4fun.net/",
+            "url": "https://www.soft4fun.net/author/{username}",
+            "usernameClaimed": "soft4fun",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 30000
+        },
+        "ITHelp": {
+            "tags": [
+                "tech",
+                "qa",
+                "programming",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://ithelp.ithome.com.tw/",
+            "url": "https://ithelp.ithome.com.tw/users/{username}/profile",
+            "usernameClaimed": "20000001",
+            "usernameUnclaimed": "99999999",
+            "alexaRank": 15000
+        },
+        "Roodo": {
+            "tags": [
+                "blog",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://blog.roodo.com/",
+            "url": "https://blog.roodo.com/{username}",
+            "usernameClaimed": "roodo",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 50000,
+            "disabled": true
+        },
+        "SayDigi": {
+            "tags": [
+                "tech",
+                "blog",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.saydigi.com/",
+            "url": "https://www.saydigi.com/author/{username}/",
+            "usernameClaimed": "admin",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 40000,
+            "disabled": true
+        },
+        "KOCPC": {
+            "tags": [
+                "tech",
+                "blog",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.koc.com.tw/",
+            "url": "https://www.koc.com.tw/author/{username}/",
+            "usernameClaimed": "kocpc",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 35000,
+            "disabled": true
+        },
+        "BusinessNext": {
+            "tags": [
+                "tech",
+                "news",
+                "business",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.bnext.com.tw/",
+            "url": "https://www.bnext.com.tw/author/{username}",
+            "usernameClaimed": "bnext",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 8000,
+            "disabled": true
+        },
+        "TechNews": {
+            "tags": [
+                "tech",
+                "news",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://technews.tw/",
+            "url": "https://technews.tw/author/{username}/",
+            "usernameClaimed": "technews",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 6000,
+            "disabled": true
+        },
+        "Anue": {
+            "tags": [
+                "finance",
+                "news",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.anue.cc/",
+            "url": "https://www.anue.cc/author/{username}",
+            "usernameClaimed": "anue",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 5000,
+            "disabled": true
+        },
+        "MoneyDJ": {
+            "tags": [
+                "finance",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.moneydj.com/",
+            "url": "https://www.moneydj.com/KMDJ/Wiki/WikiViewer.aspx?KeyID={username}",
+            "usernameClaimed": "moneydj",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 7000,
+            "disabled": true
+        },
+        "GamezArena": {
+            "tags": [
+                "gaming",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.gamez.com.tw/",
+            "url": "https://www.gamez.com.tw/member/{username}",
+            "usernameClaimed": "gamez",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 25000,
+            "disabled": true
+        },
+        "StatementDog": {
+            "tags": [
+                "finance",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://statementdog.com/",
+            "url": "https://statementdog.com/analysis/{username}",
+            "usernameClaimed": "statementdog",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 12000,
+            "disabled": true
+        },
+        "WantGoo": {
+            "tags": [
+                "finance",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.wantgoo.com/",
+            "url": "https://www.wantgoo.com/member/{username}",
+            "usernameClaimed": "wantgoo",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 18000,
+            "disabled": true
+        },
+        "ETtoday": {
+            "tags": [
+                "news",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.ettoday.net/",
+            "url": "https://www.ettoday.net/news/author/{username}",
+            "usernameClaimed": "ettoday",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 3000,
+            "disabled": true
+        },
+        "SETN": {
+            "tags": [
+                "news",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.setn.com/",
+            "url": "https://www.setn.com/author/{username}",
+            "usernameClaimed": "setn",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 3500,
+            "disabled": true
+        },
+        "TVBS": {
+            "tags": [
+                "news",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://news.tvbs.com.tw/",
+            "url": "https://news.tvbs.com.tw/author/{username}",
+            "usernameClaimed": "tvbs",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 4000,
+            "disabled": true
+        },
+        "MirrorMedia": {
+            "tags": [
+                "news",
+                "media",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.mirrormedia.mg/",
+            "url": "https://www.mirrormedia.mg/author/{username}",
+            "usernameClaimed": "mirrormedia",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 6000,
+            "disabled": true
+        },
+        "BusinessWeekly": {
+            "tags": [
+                "news",
+                "business",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.businessweekly.com.tw/",
+            "url": "https://www.businessweekly.com.tw/author/{username}",
+            "usernameClaimed": "bw",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 5500,
+            "disabled": true
+        },
+        "Eyny": {
+            "tags": [
+                "forum",
+                "entertainment",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.eyny.com/",
+            "url": "https://www.eyny.com/space-uid-{username}.html",
+            "usernameClaimed": "1",
+            "usernameUnclaimed": "99999999",
+            "alexaRank": 10000,
+            "disabled": true
+        },
+        "CK101": {
+            "tags": [
+                "forum",
+                "entertainment",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.ck101.com/",
+            "url": "https://www.ck101.com/home.php?mod=space&uid={username}",
+            "usernameClaimed": "1",
+            "usernameUnclaimed": "99999999",
+            "alexaRank": 15000,
+            "disabled": true
+        },
+        "ShopeeTW": {
+            "tags": [
+                "ecommerce",
+                "shopping",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://shopee.tw/",
+            "url": "https://shopee.tw/{username}",
+            "usernameClaimed": "shopee",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 1500,
+            "disabled": true
+        },
+        "LINETV": {
+            "tags": [
+                "streaming",
+                "entertainment",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.linetv.tw/",
+            "url": "https://www.linetv.tw/channel/{username}",
+            "usernameClaimed": "1",
+            "usernameUnclaimed": "99999999",
+            "alexaRank": 2000,
+            "disabled": true
+        },
+        "LiTV": {
+            "tags": [
+                "streaming",
+                "entertainment",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.litv.tv/",
+            "url": "https://www.litv.tv/member/{username}",
+            "usernameClaimed": "1",
+            "usernameUnclaimed": "99999999",
+            "alexaRank": 8000,
+            "disabled": true
+        },
+        "FridayVideo": {
+            "tags": [
+                "streaming",
+                "entertainment",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://video.friday.tw/",
+            "url": "https://video.friday.tw/author/{username}",
+            "usernameClaimed": "friday",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 5000,
+            "disabled": true
+        },
+        "HamiVideo": {
+            "tags": [
+                "streaming",
+                "entertainment",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://hamivideo.hinet.net/",
+            "url": "https://hamivideo.hinet.net/member/{username}",
+            "usernameClaimed": "hamivideo",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 6000,
+            "disabled": true
+        },
+        "TAAZE": {
+            "tags": [
+                "ecommerce",
+                "books",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.taaze.tw/",
+            "url": "https://www.taaze.tw/user/{username}.html",
+            "usernameClaimed": "1",
+            "usernameUnclaimed": "99999999",
+            "alexaRank": 10000,
+            "disabled": true
+        },
+        "BooksTW": {
+            "tags": [
+                "ecommerce",
+                "books",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.books.com.tw/",
+            "url": "https://www.books.com.tw/web/sys_author/{username}",
+            "usernameClaimed": "books_service",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 2500,
+            "disabled": true
+        },
+        "Rakuya": {
+            "tags": [
+                "realestate",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.rakuya.com.tw/",
+            "url": "https://www.rakuya.com.tw/agent/{username}",
+            "usernameClaimed": "1",
+            "usernameUnclaimed": "99999999",
+            "alexaRank": 15000,
+            "disabled": true
+        },
+        "MySalaryTW": {
+            "tags": [
+                "jobs",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://salary.tw/",
+            "url": "https://salary.tw/profile/{username}",
+            "usernameClaimed": "admin",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 20000,
+            "disabled": true
+        },
+        "SeeTravel": {
+            "tags": [
+                "travel",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.seetravel.tw/",
+            "url": "https://www.seetravel.tw/user/{username}",
+            "usernameClaimed": "seetravel",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 30000,
+            "disabled": true
+        },
+        "RunningBiji": {
+            "tags": [
+                "sports",
+                "running",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://running.biji.co/",
+            "url": "https://running.biji.co/index.php?q=user&sub=home&u={username}",
+            "usernameClaimed": "1",
+            "usernameUnclaimed": "99999999",
+            "alexaRank": 25000,
+            "disabled": true
+        },
+        "PlainLaw": {
+            "tags": [
+                "law",
+                "education",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://plainlaw.me/",
+            "url": "https://plainlaw.me/author/{username}",
+            "usernameClaimed": "plainlaw",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 30000,
+            "disabled": true
+        },
+        "StoryStudio": {
+            "tags": [
+                "history",
+                "culture",
+                "writing",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://storystudio.tw/",
+            "url": "https://storystudio.tw/author/{username}",
+            "usernameClaimed": "storystudio",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 35000,
+            "disabled": true
+        },
+        "Womany": {
+            "tags": [
+                "lifestyle",
+                "writing",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://womany.net/",
+            "url": "https://womany.net/users/{username}",
+            "usernameClaimed": "womany",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 12000,
+            "disabled": true
+        },
+        "Accupass": {
+            "tags": [
+                "events",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.accupass.com/",
+            "url": "https://www.accupass.com/organizer/detail/r/{username}/0/1/1/0",
+            "usernameClaimed": "accupass",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 8000,
+            "disabled": true
+        },
+        "InterviewTW": {
+            "tags": [
+                "jobs",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://interview.tw/",
+            "url": "https://interview.tw/user/{username}",
+            "usernameClaimed": "admin",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 25000,
+            "disabled": true
+        },
+        "TechBang": {
+            "tags": [
+                "tech",
+                "news",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.techbang.com/",
+            "url": "https://www.techbang.com/users/{username}",
+            "usernameClaimed": "techbang",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 7000,
+            "disabled": true
+        },
+        "CTimes": {
+            "tags": [
+                "news",
+                "business",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.ctee.com.tw/",
+            "url": "https://www.ctee.com.tw/author/{username}",
+            "usernameClaimed": "ctee",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 9000,
+            "disabled": true
+        },
+        "EsliteOnline": {
+            "tags": [
+                "ecommerce",
+                "books",
+                "lifestyle",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.eslite.com/",
+            "url": "https://www.eslite.com/user/{username}",
+            "usernameClaimed": "1",
+            "usernameUnclaimed": "99999999",
+            "alexaRank": 10000,
+            "disabled": true
+        },
+        "WuoWuo": {
+            "tags": [
+                "environment",
+                "animals",
+                "writing",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://wuo-wuo.com/",
+            "url": "https://wuo-wuo.com/author/{username}",
+            "usernameClaimed": "wuowuo",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 40000,
+            "disabled": true
+        },
+        "CheersMedia": {
+            "tags": [
+                "career",
+                "education",
+                "writing",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.cheers.com.tw/",
+            "url": "https://www.cheers.com.tw/author/{username}",
+            "usernameClaimed": "1",
+            "usernameUnclaimed": "99999999",
+            "alexaRank": 8000,
+            "disabled": true
+        },
+        "Cookpad": {
+            "tags": [
+                "food",
+                "cooking",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://cookpad.com/tw/",
+            "url": "https://cookpad.com/tw/users/{username}",
+            "usernameClaimed": "1",
+            "usernameUnclaimed": "99999999",
+            "alexaRank": 8000,
+            "disabled": true
+        },
+        "TechIsland": {
+            "tags": [
+                "tech",
+                "news",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.techisland.com.tw/",
+            "url": "https://www.techisland.com.tw/author/{username}",
+            "usernameClaimed": "techisland",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 20000,
+            "disabled": true
+        },
+        "FreeRes": {
+            "tags": [
+                "tech",
+                "blog",
+                "freeware",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://free.com.tw/",
+            "url": "https://free.com.tw/author/{username}/",
+            "usernameClaimed": "admin",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 15000,
+            "disabled": true
+        },
+        "UDesign": {
+            "tags": [
+                "design",
+                "creative",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://udesign.tw/",
+            "url": "https://udesign.tw/author/{username}",
+            "usernameClaimed": "udesign",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 30000,
+            "disabled": true
+        },
+        "YahooBidTW": {
+            "tags": [
+                "ecommerce",
+                "auction",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://tw.bid.yahoo.com/",
+            "url": "https://tw.bid.yahoo.com/booth/{username}",
+            "usernameClaimed": "Y7518800",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 500,
+            "disabled": true
+        },
+        "PinGoodA": {
+            "tags": [
+                "ecommerce",
+                "shopping",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.pingooda.com/",
+            "url": "https://www.pingooda.com/seller/{username}",
+            "usernameClaimed": "1",
+            "usernameUnclaimed": "99999999",
+            "alexaRank": 20000,
+            "disabled": true
+        },
+        "Buy123": {
+            "tags": [
+                "ecommerce",
+                "shopping",
+                "lifestyle",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.buy123.com.tw/",
+            "url": "https://www.buy123.com.tw/site/seller/{username}",
+            "usernameClaimed": "1",
+            "usernameUnclaimed": "99999999",
+            "alexaRank": 8000,
+            "disabled": true
+        },
+        "KingstoneBooks": {
+            "tags": [
+                "ecommerce",
+                "books",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.kingstone.com.tw/",
+            "url": "https://www.kingstone.com.tw/author/{username}",
+            "usernameClaimed": "kingstone",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 6000,
+            "disabled": true
+        },
+        "Greenvines": {
+            "tags": [
+                "ecommerce",
+                "lifestyle",
+                "health",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.greenvines.com.tw/",
+            "url": "https://www.greenvines.com.tw/user/{username}",
+            "usernameClaimed": "greenvines",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 18000,
+            "disabled": true
+        },
+        "Funliday": {
+            "tags": [
+                "travel",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.funliday.com/",
+            "url": "https://www.funliday.com/user/{username}",
+            "usernameClaimed": "funliday",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 25000,
+            "disabled": true
+        },
+        "Work104": {
+            "tags": [
+                "jobs",
+                "career",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.104.com.tw/",
+            "url": "https://www.104.com.tw/company/{username}",
+            "usernameClaimed": "1a2b3c4d5e",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 300,
+            "disabled": true
+        },
+        "Work1111": {
+            "tags": [
+                "jobs",
+                "career",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.1111.com.tw/",
+            "url": "https://www.1111.com.tw/resume/{username}/",
+            "usernameClaimed": "1",
+            "usernameUnclaimed": "99999999",
+            "alexaRank": 1000,
+            "disabled": true
+        },
+        "Work518": {
+            "tags": [
+                "jobs",
+                "career",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.518.com.tw/",
+            "url": "https://www.518.com.tw/resume/{username}/",
+            "usernameClaimed": "1",
+            "usernameUnclaimed": "99999999",
+            "alexaRank": 3000,
+            "disabled": true
+        },
+        "UCAR": {
+            "tags": [
+                "automotive",
+                "forum",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.u-car.com.tw/",
+            "url": "https://www.u-car.com.tw/forum/member.php?u={username}",
+            "usernameClaimed": "1",
+            "usernameUnclaimed": "99999999",
+            "alexaRank": 5000,
+            "disabled": true
+        },
+        "OPENTIX2": {
+            "tags": [
+                "events",
+                "arts",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.opentix.life/",
+            "url": "https://www.opentix.life/user/{username}",
+            "usernameClaimed": "1",
+            "usernameUnclaimed": "99999999",
+            "alexaRank": 20000,
+            "disabled": true
+        },
+        "WaBay": {
+            "tags": [
+                "ecommerce",
+                "secondhand",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://wabay.tw/",
+            "url": "https://wabay.tw/member/{username}",
+            "usernameClaimed": "1",
+            "usernameUnclaimed": "99999999",
+            "alexaRank": 15000,
+            "disabled": true
+        },
+        "CMoneyGroup": {
+            "tags": [
+                "finance",
+                "stock",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://group.cmoney.tw/",
+            "url": "https://group.cmoney.tw/user/{username}",
+            "usernameClaimed": "cmoney",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 4000,
+            "disabled": true
+        },
+        "GVM": {
+            "tags": [
+                "news",
+                "business",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.gvm.com.tw/",
+            "url": "https://www.gvm.com.tw/author/{username}",
+            "usernameClaimed": "gvm",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 5000,
+            "disabled": true
+        },
+        "StormMG": {
+            "tags": [
+                "news",
+                "media",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.storm.mg/",
+            "url": "https://www.storm.mg/article-provider/{username}",
+            "usernameClaimed": "stormteam",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 4000,
+            "disabled": true
+        },
+        "TWReporter": {
+            "tags": [
+                "news",
+                "journalism",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.twreporter.org/",
+            "url": "https://www.twreporter.org/author/{username}",
+            "usernameClaimed": "twreporter",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 6000,
+            "disabled": true
+        },
+        "FilmCircleTW": {
+            "tags": [
+                "entertainment",
+                "film",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.filmcircle.com.tw/",
+            "url": "https://www.filmcircle.com.tw/user/{username}",
+            "usernameClaimed": "1",
+            "usernameUnclaimed": "99999999",
+            "alexaRank": 30000,
+            "disabled": true
+        },
+        "FilmSearchTW": {
+            "tags": [
+                "entertainment",
+                "film",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://www.filmsearch.com.tw/",
+            "url": "https://www.filmsearch.com.tw/user/{username}",
+            "usernameClaimed": "1",
+            "usernameUnclaimed": "99999999",
+            "alexaRank": 35000,
+            "disabled": true
+        },
+        "HackMD": {
+            "tags": [
+                "coding",
+                "taiwan",
+                "zh_TW"
+            ],
+            "checkType": "status_code",
+            "urlMain": "https://hackmd.io/",
+            "url": "https://hackmd.io/@{username}",
+            "usernameClaimed": "hackmd",
+            "usernameUnclaimed": "noonewouldeverusethis7777",
+            "alexaRank": 3500
         }
     },
     "engines": {
@@ -36314,6 +37668,7 @@
         "career",
         "classified",
         "coding",
+        "crowdfunding",
         "crypto",
         "cybercriminal",
         "dating",
@@ -36325,6 +37680,7 @@
         "fashion",
         "finance",
         "fintech",
+        "food",
         "forum",
         "freelance",
         "gambling",
@@ -36361,6 +37717,7 @@
         "stock",
         "streaming",
         "tasks",
+        "taiwan",
         "tech",
         "tor",
         "torrent",
@@ -36369,6 +37726,7 @@
         "video",
         "webcam",
         "wiki",
-        "writing"
+        "writing",
+        "zh_TW"
     ]
 }
