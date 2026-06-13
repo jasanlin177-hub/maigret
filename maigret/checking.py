@@ -1,6 +1,7 @@
 # Standard library imports
 import ast
 import asyncio
+import hashlib
 import logging
 import os
 import random
@@ -356,6 +357,11 @@ class CurlCffiChecker(CheckerBase):
                     'allow_redirects': self.allow_redirects,
                     'timeout': self.timeout if self.timeout else 10,
                     'impersonate': self.browser_emulate,
+                    # Mirror SimpleAiohttpChecker: disable cert verification so
+                    # sites with invalid/expired certs — or networks doing TLS
+                    # inspection (corporate proxies, missing CA issuer) — don't
+                    # fail with "curl: (60) SSL certificate problem".
+                    'verify': False,
                 }
                 if self.payload and self.method.lower() == 'post':
                     kwargs['json'] = self.payload
@@ -374,6 +380,108 @@ class CurlCffiChecker(CheckerBase):
 
                 error = CheckError("Connection lost") if status_code == 0 else None
                 return decoded_content, status_code, error
+
+        except asyncio.TimeoutError as e:
+            return None, 0, CheckError("Request timeout", str(e))
+        except KeyboardInterrupt:
+            return None, 0, CheckError("Interrupted")
+        except Exception as e:
+            self.logger.debug(e, exc_info=True)
+            return None, 0, CheckError("Unexpected", str(e))
+
+
+# Recognises the self-hosted SHA-256 proof-of-work interstitial used by some
+# Discuz-based Taiwan forums (e.g. Eyny / 伊莉). The page ships an inline script
+# that brute-forces a nonce so that
+#     SHA-256(f"{challenge}|{ts}|{nonce}")  starts with `diff` hex zeros,
+# then stores the answer in three client-side cookies (`<prefix>_n`,
+# `<prefix>_ts`, `<prefix>_ch`) and reloads. Cheap (diff=4 → <0.1s) but it stops
+# plain HTTP clients dead because the cookies are never sent via Set-Cookie.
+_POW_MARKER = "solvePoW"
+_POW_CHALLENGE_RE = re.compile(r'var challenge = "([0-9a-f]+)"')
+_POW_TS_RE = re.compile(r'var ts = "(\d+)"')
+_POW_DIFF_RE = re.compile(r'var diff = (\d+)')
+_POW_PREFIX_RE = re.compile(r'document\.cookie = "(\w+)_n="')
+
+
+def _solve_sha256_pow(challenge: str, ts: str, diff: int, max_iters: int = 5_000_000) -> Optional[int]:
+    """Brute-force the nonce. Returns None if it exceeds max_iters (safety cap)."""
+    target = "0" * diff
+    for nonce in range(max_iters):
+        digest = hashlib.sha256(f"{challenge}|{ts}|{nonce}".encode()).hexdigest()
+        if digest.startswith(target):
+            return nonce
+    return None
+
+
+class PowSha256Checker(CurlCffiChecker):
+    """curl_cffi checker that transparently solves the SHA-256 PoW interstitial.
+
+    Reuses CurlCffiChecker's browser TLS impersonation, then — within a single
+    cookie-persisting session — detects the challenge page, computes the nonce,
+    injects the three PoW cookies and refetches. The challenge can be re-issued
+    on the authenticated load, so it loops a few times before giving up.
+    """
+
+    MAX_ROUNDS = 5
+
+    @staticmethod
+    def _cookie_domain(url: str) -> str:
+        host = re.sub(r"^https?://", "", url).split("/")[0]
+        parts = host.split(".")
+        return "." + ".".join(parts[-2:]) if len(parts) >= 2 else host
+
+    async def check(self) -> Tuple[Optional[str], int, Optional[CheckError]]:
+        try:
+            session_kwargs = {}
+            if self.proxy:
+                session_kwargs['proxies'] = {'http': self.proxy, 'https': self.proxy}
+            async with CurlCffiAsyncSession(**session_kwargs) as session:
+                headers = {k: v for k, v in (self.headers or {}).items()
+                           if k.lower() not in ('user-agent', 'connection')}
+                kwargs = {
+                    'url': self.url,
+                    'headers': headers or None,
+                    'allow_redirects': True,
+                    'timeout': self.timeout if self.timeout else 15,
+                    'impersonate': self.browser_emulate,
+                    'verify': False,
+                }
+                response = await session.get(**kwargs)
+                body = response.text
+
+                rounds = 0
+                while _POW_MARKER in body and rounds < self.MAX_ROUNDS:
+                    rounds += 1
+                    try:
+                        challenge = _POW_CHALLENGE_RE.search(body).group(1)
+                        ts = _POW_TS_RE.search(body).group(1)
+                        diff = int(_POW_DIFF_RE.search(body).group(1))
+                        prefix = _POW_PREFIX_RE.search(body).group(1)
+                    except AttributeError:
+                        # Page looks like a PoW page but the fields shifted;
+                        # bail out and let the result be judged on this body.
+                        break
+                    nonce = _solve_sha256_pow(challenge, ts, diff)
+                    if nonce is None:
+                        return None, 0, CheckError("PoW", "nonce search exhausted")
+                    domain = self._cookie_domain(str(response.url))
+                    for name, value in (
+                        (f"{prefix}_n", str(nonce)),
+                        (f"{prefix}_ts", ts),
+                        (f"{prefix}_ch", challenge),
+                    ):
+                        session.cookies.set(name, value, domain=domain)
+                    self.logger.debug(
+                        f"Solved SHA-256 PoW (diff={diff}, nonce={nonce}) for {self.url}"
+                    )
+                    response = await session.get(**kwargs)
+                    body = response.text
+
+                status_code = response.status_code
+                self.logger.debug(body)
+                error = CheckError("Connection lost") if status_code == 0 else None
+                return body, status_code, error
 
         except asyncio.TimeoutError as e:
             return None, 0, CheckError("Request timeout", str(e))
@@ -871,6 +979,7 @@ def make_site_result(
         p in cf_bypass["trigger_protection"] for p in site.protection
     )
     needs_impersonation = 'tls_fingerprint' in site.protection
+    needs_pow = 'pow_sha256' in site.protection
 
     if needs_webgate:
         checker = CloudflareWebgateChecker(logger=logger, config=cf_bypass)
@@ -878,6 +987,22 @@ def make_site_result(
             f"Using Cloudflare webgate for {site.name} "
             f"(protection: {list(site.protection)})"
         )
+    elif needs_pow and CURL_CFFI_AVAILABLE:
+        checker = PowSha256Checker(
+            logger=logger,
+            browser_emulate='chrome',
+            proxy=options.get('proxy'),
+        )
+        logger.info(
+            f"Using SHA-256 PoW solver for {site.name} "
+            f"(protection: {list(site.protection)})"
+        )
+    elif needs_pow and not CURL_CFFI_AVAILABLE:
+        logger.warning(
+            f"Site {site.name} requires the SHA-256 PoW solver (curl_cffi) but it's not installed. "
+            "Install with: pip install curl_cffi"
+        )
+        checker = options["checkers"][site.protocol]
     elif needs_impersonation and CURL_CFFI_AVAILABLE:
         checker = CurlCffiChecker(
             logger=logger,

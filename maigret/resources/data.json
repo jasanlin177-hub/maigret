@@ -6065,24 +6065,6 @@
                 "forum"
             ]
         },
-        "Hack MD": {
-            "url": "https://hackmd.io/@{username}",
-            "urlMain": "https://hackmd.io/",
-            "checkType": "message",
-            "presenseStrs": [
-                " - HackMD</title>"
-            ],
-            "absenceStrs": [
-                "<title>404 Not Found - HackMD</title>"
-            ],
-            "usernameClaimed": "blue",
-            "usernameUnclaimed": "noonewouldeverusethis7",
-            "tags": [
-                "coding",
-                "taiwan"
-            ],
-            "alexaRank": 2877
-        },
         "Crunchyroll": {
             "disabled": true,
             "tags": [
@@ -36092,19 +36074,14 @@
                 "taiwan",
                 "zh_TW"
             ],
-            "disabled": true,
-            "checkType": "message",
+            "checkType": "status_code",
             "urlMain": "https://www.dcard.tw/",
             "url": "https://www.dcard.tw/@{username}",
-            "urlProbe": "https://www.dcard.tw/service/api/v2/users/{username}",
-            "presenseStrs": [
-                "\"id\":"
-            ],
-            "absenceStrs": [
-                "\"error\":"
-            ],
             "usernameClaimed": "dcard",
             "usernameUnclaimed": "noonewouldeverusethis7",
+            "protection": [
+                "tls_fingerprint"
+            ],
             "alexaRank": 1200
         },
         "Bahamut": {
@@ -36114,7 +36091,6 @@
                 "taiwan",
                 "zh_TW"
             ],
-            "disabled": true,
             "regexCheck": "^[a-zA-Z0-9_]{2,20}$",
             "checkType": "message",
             "urlMain": "https://www.gamer.com.tw/",
@@ -36122,11 +36098,11 @@
             "presenseStrs": [
                 "的小屋"
             ],
-            "absenceStrs": [
-                "找不到此小屋"
-            ],
-            "usernameClaimed": "GNN",
+            "usernameClaimed": "bahamut",
             "usernameUnclaimed": "noonewouldeverusethis7",
+            "protection": [
+                "tls_fingerprint"
+            ],
             "alexaRank": 800
         },
         "iThome": {
@@ -36252,21 +36228,18 @@
                 "taiwan",
                 "zh_TW"
             ],
-            "disabled": true,
             "checkType": "message",
             "urlMain": "https://www.mobile01.com/",
-            "url": "https://www.mobile01.com/profile.php?member={username}",
+            "url": "https://www.mobile01.com/userinfo.php?id={username}",
             "presenseStrs": [
-                "class=\"profile-"
+                "註冊日期"
             ],
-            "absenceStrs": [
-                "找不到此會員",
-                "帳號不存在",
-                "會員不存在"
-            ],
-            "usernameClaimed": "mobile01",
+            "usernameClaimed": "3577489",
             "usernameUnclaimed": "noonewouldeverusethis7",
-            "alexaRank": 1000
+            "alexaRank": 1000,
+            "protection": [
+                "tls_fingerprint"
+            ]
         },
         "Timelog": {
             "tags": [
@@ -36295,7 +36268,10 @@
             "url": "https://www.zeczec.com/users/{username}",
             "usernameClaimed": "zeczec",
             "usernameUnclaimed": "noonewouldeverusethis7",
-            "alexaRank": 15000
+            "alexaRank": 15000,
+            "protection": [
+                "tls_fingerprint"
+            ]
         },
         "LikeCoin": {
             "tags": [
@@ -36335,19 +36311,10 @@
                 "taiwan",
                 "zh_TW"
             ],
-            "disabled": true,
-            "checkType": "message",
+            "checkType": "status_code",
             "urlMain": "https://www.ruten.com.tw/",
-            "url": "https://class.ruten.com.tw/user/index00.php?s={username}",
-            "presenseStrs": [
-                "的賣場"
-            ],
-            "absenceStrs": [
-                "此帳號不存在",
-                "找不到此會員",
-                "帳號不存在"
-            ],
-            "usernameClaimed": "ruten",
+            "url": "https://www.ruten.com.tw/store/{username}/",
+            "usernameClaimed": "linkerthouse22",
             "usernameUnclaimed": "noonewouldeverusethis7",
             "alexaRank": 1500
         },
@@ -36432,10 +36399,9 @@
             ],
             "checkType": "status_code",
             "urlMain": "https://kktix.com/",
-            "url": "https://kktix.com/{username}/events",
-            "usernameClaimed": "kktix",
+            "url": "https://{username}.kktix.cc/",
+            "usernameClaimed": "coscup",
             "usernameUnclaimed": "noonewouldeverusethis7",
-            "disabled": true,
             "alexaRank": 3000
         },
         "Backpackers": {
@@ -36445,13 +36411,15 @@
                 "taiwan",
                 "zh_TW"
             ],
-            "checkType": "status_code",
+            "checkType": "message",
             "urlMain": "https://www.backpackers.com.tw/",
             "url": "https://www.backpackers.com.tw/forum/member.php?u={username}",
-            "usernameClaimed": "1",
-            "usernameUnclaimed": "99999999",
-            "disabled": true,
-            "alexaRank": 4000
+            "usernameClaimed": "418",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "alexaRank": 4000,
+            "presenseStrs": [
+                "註冊日期"
+            ]
         },
         "INSIDE": {
             "tags": [
@@ -36511,21 +36479,6 @@
             "usernameUnclaimed": "noonewouldeverusethis7",
             "alexaRank": 30000
         },
-        "ITHelp": {
-            "tags": [
-                "tech",
-                "qa",
-                "programming",
-                "taiwan",
-                "zh_TW"
-            ],
-            "checkType": "status_code",
-            "urlMain": "https://ithelp.ithome.com.tw/",
-            "url": "https://ithelp.ithome.com.tw/users/{username}/profile",
-            "usernameClaimed": "20000001",
-            "usernameUnclaimed": "99999999",
-            "alexaRank": 15000
-        },
         "Roodo": {
             "tags": [
                 "blog",
@@ -36547,13 +36500,15 @@
                 "taiwan",
                 "zh_TW"
             ],
-            "checkType": "status_code",
+            "checkType": "message",
             "urlMain": "https://www.saydigi.com/",
-            "url": "https://www.saydigi.com/author/{username}/",
-            "usernameClaimed": "admin",
+            "url": "https://www.saydigi.com/author/{username}",
+            "usernameClaimed": "kisplay",
             "usernameUnclaimed": "noonewouldeverusethis7",
             "alexaRank": 40000,
-            "disabled": true
+            "presenseStrs": [
+                "property=\"og:type\" content=\"profile\""
+            ]
         },
         "KOCPC": {
             "tags": [
@@ -36751,13 +36706,18 @@
                 "taiwan",
                 "zh_TW"
             ],
-            "checkType": "status_code",
+            "checkType": "message",
             "urlMain": "https://www.eyny.com/",
-            "url": "https://www.eyny.com/space-uid-{username}.html",
-            "usernameClaimed": "1",
-            "usernameUnclaimed": "99999999",
-            "alexaRank": 10000,
-            "disabled": true
+            "url": "https://www.eyny.com/space-username-{username}.html",
+            "presenseStrs": [
+                "的個人資料"
+            ],
+            "usernameClaimed": "yokata",
+            "usernameUnclaimed": "noonewouldeverusethis7",
+            "protection": [
+                "pow_sha256"
+            ],
+            "alexaRank": 10000
         },
         "CK101": {
             "tags": [
@@ -36961,11 +36921,10 @@
             ],
             "checkType": "status_code",
             "urlMain": "https://storystudio.tw/",
-            "url": "https://storystudio.tw/author/{username}",
-            "usernameClaimed": "storystudio",
+            "url": "https://storystudio.tw/columnist/{username}",
+            "usernameClaimed": "alohas",
             "usernameUnclaimed": "noonewouldeverusethis7",
-            "alexaRank": 35000,
-            "disabled": true
+            "alexaRank": 35000
         },
         "Womany": {
             "tags": [
@@ -36976,11 +36935,10 @@
             ],
             "checkType": "status_code",
             "urlMain": "https://womany.net/",
-            "url": "https://womany.net/users/{username}",
-            "usernameClaimed": "womany",
+            "url": "https://womany.net/authors/{username}",
+            "usernameClaimed": "arielli",
             "usernameUnclaimed": "noonewouldeverusethis7",
-            "alexaRank": 12000,
-            "disabled": true
+            "alexaRank": 12000
         },
         "Accupass": {
             "tags": [
@@ -36988,13 +36946,15 @@
                 "taiwan",
                 "zh_TW"
             ],
-            "checkType": "status_code",
+            "checkType": "message",
             "urlMain": "https://www.accupass.com/",
-            "url": "https://www.accupass.com/organizer/detail/r/{username}/0/1/1/0",
-            "usernameClaimed": "accupass",
+            "url": "https://www.accupass.com/organizer/detail/{username}",
+            "usernameClaimed": "2405071010211563175667",
             "usernameUnclaimed": "noonewouldeverusethis7",
             "alexaRank": 8000,
-            "disabled": true
+            "presenseStrs": [
+                "content=\"https://www.accupass.com/organizer/detail"
+            ]
         },
         "InterviewTW": {
             "tags": [
@@ -37020,10 +36980,9 @@
             "checkType": "status_code",
             "urlMain": "https://www.techbang.com/",
             "url": "https://www.techbang.com/users/{username}",
-            "usernameClaimed": "techbang",
+            "usernameClaimed": "janus",
             "usernameUnclaimed": "noonewouldeverusethis7",
-            "alexaRank": 7000,
-            "disabled": true
+            "alexaRank": 7000
         },
         "CTimes": {
             "tags": [
@@ -37384,11 +37343,10 @@
             ],
             "checkType": "status_code",
             "urlMain": "https://www.twreporter.org/",
-            "url": "https://www.twreporter.org/author/{username}",
-            "usernameClaimed": "twreporter",
+            "url": "https://www.twreporter.org/authors/{username}",
+            "usernameClaimed": "571dd700dae62379576d7f17",
             "usernameUnclaimed": "noonewouldeverusethis7",
-            "alexaRank": 6000,
-            "disabled": true
+            "alexaRank": 6000
         },
         "FilmCircleTW": {
             "tags": [
