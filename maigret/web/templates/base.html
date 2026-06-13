@@ -1,118 +1,346 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="zh-TW" data-theme="dark">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maigret Web Interface</title>
+    <title>Maigret 偵查系統</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
+        :root[data-theme="dark"] {
+            --bg-primary:    #0b1120;
+            --bg-card:       #0d1526;
+            --bg-elevated:   #141d2c;
+            --border-color:  rgba(255,255,255,0.07);
+            --text-primary:  #e2e8f0;
+            --text-muted:    #64748b;
+            --accent:        #3b82f6;
+            --accent-glow:   rgba(59,130,246,0.15);
+            --accent-hover:  #60a5fa;
+            --success:       #10b981;
+            --danger:        #ef4444;
+            --warning:       #f59e0b;
+            --tag-neutral:   #1e293b;
+            --tag-include:   #052e16;
+            --tag-exclude:   #450a0a;
+            --shadow:        0 4px 24px rgba(0,0,0,0.6);
+            --status-claimed:   #10b981;
+            --status-notfound:  #4b5563;
+            --status-unknown:   #f59e0b;
+        }
+        :root[data-theme="light"] {
+            --bg-primary:   #f0f4f8;
+            --bg-card:      #ffffff;
+            --bg-elevated:  #e8edf4;
+            --border-color: #d0d7e3;
+            --text-primary: #1a202c;
+            --text-muted:   #4a5568;
+            --accent:       #0077a8;
+            --accent-glow:  rgba(0,119,168,0.15);
+            --accent-hover: #005f8a;
+            --success:      #2ecc71;
+            --danger:       #e74c3c;
+            --warning:      #e67e22;
+            --tag-neutral:  #dde3ec;
+            --tag-include:  #c6f6d5;
+            --tag-exclude:  #fed7d7;
+            --shadow:       0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        * { box-sizing: border-box; }
+
         body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            transition: background 0.3s, color 0.3s;
         }
 
-        .main-container {
-            flex: 1;
-            padding-top: 2rem;
+        /* ── 頂部導覽列 ── */
+        .site-header {
+            background: var(--bg-card);
+            border-bottom: 2px solid #162a45;
+            padding: 0.75rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.4);
         }
-
-        .form-container {
-            max-width: auto;
-            margin: auto;
-            padding-bottom: 2rem;
-        }
-
-        [data-bs-theme="dark"] {
-            --bs-body-bg: #212529;
-            --bs-body-color: #dee2e6;
-        }
-
-        .header {
-            padding: 1rem 0;
-            margin-bottom: 2rem;
-            border-bottom: 1px solid var(--bs-border-color);
-        }
-
-        .header-content {
+        .header-inner {
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
-
-        .logo-container {
+        .brand {
             display: flex;
             align-items: center;
-            gap: 1rem;
-        }
-
-        .logo {
-            height: 40px;
-            width: auto;
-        }
-
-        .footer {
-            margin-top: auto;
-            padding: 1rem 0;
-            text-align: center;
-            border-top: 1px solid var(--bs-border-color);
-            font-size: 0.9rem;
-        }
-
-        .footer a {
-            color: inherit;
+            gap: 0.75rem;
             text-decoration: none;
         }
+        .brand-logo {
+            height: 52px;
+            width: auto;
+        }
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.25;
+        }
+        .brand-name {
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: 0.05em;
+        }
+        .brand-sub {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            letter-spacing: 0.08em;
+        }
+        .brand-edition {
+            font-size: 0.62rem;
+            color: #f87171;
+            letter-spacing: 0.12em;
+            border: 1px solid rgba(248,113,113,0.3);
+            background: rgba(248,113,113,0.08);
+            padding: 1px 5px;
+            border-radius: 3px;
+            display: inline-block;
+            margin-top: 2px;
+            align-self: flex-start;
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .btn-theme {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.35rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-theme:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
 
-        .footer a:hover {
-            text-decoration: underline;
+        /* ── 主內容 ── */
+        .main-content {
+            flex: 1;
+            padding: 2rem 0 3rem;
+        }
+
+        /* ── 卡片 ── */
+        .card-tw {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+            box-shadow: var(--shadow);
+        }
+        .card-tw-title {
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .card-tw-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        /* ── 表單元素 ── */
+        .form-control, .form-select {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 8px;
+            padding: 0.6rem 0.85rem;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-control:focus, .form-select:focus {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+            outline: none;
+        }
+        .form-control::placeholder { color: var(--text-muted); }
+        .form-label {
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+        }
+        .form-check-input {
+            background-color: var(--bg-elevated);
+            border-color: var(--border-color);
+        }
+        .form-check-input:checked {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+        .form-check-label { font-size: 0.88rem; }
+
+        /* ── 可收合區塊 ── */
+        .collapsible-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 0.75rem 1rem;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: background 0.2s;
+            user-select: none;
+        }
+        .collapsible-header:hover { background: var(--border-color); }
+        .collapsible-header h6 {
+            margin: 0;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .chevron-icon {
+            transition: transform 0.25s;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+        .chevron-icon.open { transform: rotate(180deg); }
+        .collapsible-body {
+            display: none;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            background: var(--bg-card);
+            margin-bottom: 0.75rem;
+        }
+        .collapsible-body.show { display: block; }
+
+        /* ── 頁尾 ── */
+        .site-footer {
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-color);
+            padding: 1rem 0;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .site-footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .site-footer a:hover { text-decoration: underline; }
+
+        /* ── 閃現訊息 ── */
+        .alert {
+            border-radius: 8px;
+            border: none;
+            font-size: 0.88rem;
+        }
+
+        /* ── 通用工具 ── */
+        .text-accent { color: var(--accent); }
+        .badge-tw {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
         }
     </style>
 </head>
 
 <body>
-    <div class="header">
+    <!-- 頂部導覽列 -->
+    <header class="site-header">
         <div class="container">
-            <div class="header-content">
-                <div class="logo-container">
-                    <img src="{{ url_for('static', filename='maigret.png') }}" alt="Maigret Logo" class="logo">
-                    <h1 class="h4 mb-0">Maigret Web Interface</h1>
+            <div class="header-inner">
+                <a href="/" class="brand">
+                    <img src="{{ url_for('static', filename='maigret.png') }}" alt="Logo" class="brand-logo">
+                    <div class="brand-text">
+                        <span class="brand-name">Maigret</span>
+                        <span class="brand-sub">網路足跡偵查系統</span>
+                        <span class="brand-edition">臺灣加強版</span>
+                    </div>
+                </a>
+                <div class="header-actions">
+                    <button class="btn-theme" id="themeToggle">🌙 切換主題</button>
                 </div>
-                <button class="btn btn-outline-secondary" id="theme-toggle">
-                    Toggle Dark/Light Mode
-                </button>
             </div>
         </div>
-    </div>
+    </header>
 
-    <div class="main-container">
+    <!-- 主內容 -->
+    <main class="main-content">
         <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'danger' else 'warning' if category == 'warning' else 'info' }} mb-3">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
             {% block content %}{% endblock %}
         </div>
-    </div>
+    </main>
 
-    <footer class="footer">
+    <!-- 頁尾 -->
+    <footer class="site-footer">
         <div class="container">
-            <p class="mb-0">
-                Powered by <a href="https://github.com/soxoj/maigret" target="_blank">Maigret</a> |
-                Licensed under <a href="https://github.com/soxoj/maigret/blob/main/LICENSE" target="_blank">MIT
-                    License</a>
-            </p>
+            由 <a href="https://github.com/soxoj/maigret" target="_blank">Maigret</a> 驅動 ·
+            台灣在地化版本 · MIT 授權
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.getElementById('theme-toggle').addEventListener('click', function () {
-            const html = document.documentElement;
-            if (html.getAttribute('data-bs-theme') === 'dark') {
-                html.setAttribute('data-bs-theme', 'light');
-            } else {
-                html.setAttribute('data-bs-theme', 'dark');
-            }
+        // 主題切換
+        const html = document.documentElement;
+        const btn = document.getElementById('themeToggle');
+        const saved = localStorage.getItem('theme') || 'dark';
+        html.setAttribute('data-theme', saved);
+        btn.textContent = saved === 'dark' ? '◑ 淺色模式' : '◑ 深色模式';
+
+        btn.addEventListener('click', () => {
+            const cur = html.getAttribute('data-theme');
+            const next = cur === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            btn.textContent = next === 'dark' ? '◑ 淺色模式' : '◑ 深色模式';
         });
+
+        // 可收合區塊
+        function toggleCollapse(id) {
+            const body = document.getElementById(id);
+            const header = body.previousElementSibling;
+            const icon = header.querySelector('.chevron-icon');
+            body.classList.toggle('show');
+            if (icon) icon.classList.toggle('open');
+        }
     </script>
 </body>
-
 </html>
