@@ -1,156 +1,379 @@
 {% extends "base.html" %}
 {% block content %}
 <style>
-    .tag-badge {
-       background-color: #214e7b;
-       padding: 2px 8px;
-       border-radius: 12px;
-       font-size: 14px;
-       display: inline-flex;
-       align-items: center;
-       gap: 5px;
-       margin: 2px;
-       color: white;
+    /* ── 頁面標題 ── */
+    .results-hero {
+        margin-bottom: 1.5rem;
     }
-    
-    .profile-list {
-       list-style: none;
-       padding: 0;
+    .results-hero h2 {
+        font-size: 1.1rem;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+        letter-spacing: 0.08em;
+        font-family: 'SF Mono', ui-monospace, monospace;
+        color: var(--text-muted);
+        text-transform: uppercase;
     }
-    
-    .profile-item {
-       margin-bottom: 10px;
-       padding: 10px;
-       display: flex;
-       justify-content: space-between;
-       align-items: center;
-       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    .results-meta {
+        font-size: 0.82rem;
+        color: var(--text-muted);
     }
-    
-    .profile-link {
-       display: flex;
-       align-items: center;
-       gap: 8px;
-    }
-    
-    .favicon {
-       width: 16px;
-       height: 16px;
-    }
-    
-    .tag-container {
-       display: flex;
-       flex-wrap: wrap;
-       gap: 5px;
-       justify-content: flex-end;
-    }
-    
-    .report-container {
-       margin-bottom: 1rem;
-    }
-    
-    .report-header {
-       cursor: pointer;
-       padding: 1rem;
-       background: rgba(255, 255, 255, 0.05);
-       border-radius: 4px;
-       margin-bottom: 0.5rem;
-    }
-    
-    .report-content {
-       display: none;
-    }
-    
-    .report-content.show {
-       display: block;
-    }
-    
-    .chevron::after {
-       content: '▼';
-       margin-left: 8px;
-       transition: transform 0.2s;
-    }
-    
-    .chevron.collapsed::after {
-       transform: rotate(-90deg);
-    }
-    </style>
 
-    <div class="form-container">
-        <h1 class="mb-4">Search Results</h1>
-        <!-- Flash messages -->
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                {% for message in messages %}
-                <div class="alert alert-info">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-     
-        <p>The search has completed. <a href="{{ url_for('index')}}">Back to start.</a></p>
-     
-        {% if graph_file %}
-        <h3>Combined Graph</h3>
-        <iframe src="{{ url_for('download_report', filename=graph_file) }}" style="width:100%; height:600px; border:none;"></iframe>
-        {% endif %}
-     
-        <hr>
-     
-        {% if individual_reports %}
-        <h3>Individual Reports</h3>
-        <div class="reports-list">
-            {% for report in individual_reports %}
-            <div class="report-container">
-                <div class="report-header" onclick="toggleReport(this)" data-target="report-{{ loop.index }}">
-                    <h5 class="mb-0 d-flex align-items-center">
-                        <span>{{ report.username }}</span>
-                        <span class="chevron"></span>
-                    </h5>
-                </div>
-                <div id="report-{{ loop.index }}" class="report-content">
-                    <p>
-                        <a href="{{ url_for('download_report', filename=report.csv_file) }}">CSV Report</a> |
-                        <a href="{{ url_for('download_report', filename=report.json_file) }}">JSON Report</a> |
-                        <a href="{{ url_for('download_report', filename=report.pdf_file) }}">PDF Report</a> |
-                        <a href="{{ url_for('download_report', filename=report.html_file) }}">HTML Report</a>
-                    </p>
-                    {% if report.claimed_profiles %}
-                    <strong>Claimed Profiles:</strong>
-                    <ul class="profile-list">
-                        {% for profile in report.claimed_profiles %}
-                        <li class="profile-item">
-                            <div class="profile-link">
-                                <img class="favicon" src="https://www.google.com/s2/favicons?domain={{ profile.url }}" onerror="this.style.display='none'" alt="">
-                                <a href="{{ profile.url }}" target="_blank">{{ profile.site_name }}</a>
-                            </div>
-                            {% if profile.tags %}
-                            <div class="tag-container">
-                                {% for tag in profile.tags %}
-                                <span class="tag-badge">{{ tag }}</span>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    {% else %}
-                    <p>No claimed profiles found.</p>
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
+    /* ── 統計列 ── */
+    .stats-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0;
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .stat-card {
+        background: var(--bg-card);
+        border-right: 1px solid var(--border-color);
+        padding: 1rem 1.5rem;
+        min-width: 110px;
+        flex: 1;
+    }
+    .stat-card:last-child { border-right: none; }
+    .stat-num {
+        font-size: 1.8rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        line-height: 1;
+        margin-bottom: 0.25rem;
+        font-family: 'SF Mono', ui-monospace, monospace;
+        letter-spacing: -0.02em;
+    }
+    .stat-num.num-found   { color: var(--status-claimed,  #10b981); }
+    .stat-num.num-unknown { color: var(--status-unknown,  #f59e0b); }
+    .stat-label {
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        letter-spacing: 0.07em;
+    }
+
+    /* ── 使用者報告卡 ── */
+    .report-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+    .report-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.9rem 1.25rem;
+        cursor: pointer;
+        background: var(--bg-elevated);
+        transition: background 0.2s;
+        user-select: none;
+    }
+    .report-card-header:hover { background: rgba(255,255,255,0.04); }
+    .report-username {
+        font-size: 0.95rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-family: 'SF Mono', ui-monospace, monospace;
+        letter-spacing: 0.03em;
+    }
+    .report-count {
+        background: rgba(59,130,246,0.12);
+        color: var(--accent);
+        border: 1px solid rgba(59,130,246,0.2);
+        font-size: 0.72rem;
+        font-weight: 500;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-family: 'SF Mono', ui-monospace, monospace;
+        letter-spacing: 0;
+    }
+    .report-card-body {
+        display: none;
+        padding: 1.25rem;
+    }
+    .report-card-body.show { display: block; }
+
+    /* ── 下載連結列 ── */
+    .download-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1.25rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .dl-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 14px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-decoration: none;
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        background: var(--bg-elevated);
+        transition: all 0.18s;
+    }
+    .dl-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: var(--accent-glow);
+    }
+
+    /* ── 找到的帳號清單 ── */
+    .profiles-title {
+        font-size: 0.72rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        letter-spacing: 0.1em;
+        margin-bottom: 0.75rem;
+        text-transform: uppercase;
+    }
+    .profile-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .profile-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 9px 10px;
+        border-radius: 8px;
+        transition: background 0.15s;
+        gap: 1rem;
+    }
+    .profile-item:hover { background: var(--bg-elevated); }
+    .profile-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+    }
+    .profile-favicon {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+        border-radius: 3px;
+    }
+    .profile-link {
+        color: var(--accent);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .profile-link:hover { text-decoration: underline; }
+    .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        justify-content: flex-end;
+        flex-shrink: 0;
+    }
+    .tag-badge {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-color);
+        color: var(--text-muted);
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 0.72rem;
+    }
+    .tag-badge.taiwan-tag {
+        background: rgba(248,113,113,0.1);
+        border-color: rgba(248,113,113,0.25);
+        color: #f87171;
+    }
+
+    /* ── 關聯圖 ── */
+    .graph-section {
+        margin-bottom: 1.5rem;
+    }
+    .graph-frame {
+        width: 100%;
+        height: 500px;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        background: var(--bg-card);
+    }
+
+    /* ── 返回按鈕 ── */
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 0.4rem 0;
+        border: none;
+        background: none;
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        text-decoration: none;
+        transition: color 0.15s;
+        margin-bottom: 1.5rem;
+        letter-spacing: 0.04em;
+    }
+    .btn-back:hover { color: var(--accent); }
+</style>
+
+<!-- 返回按鈕 -->
+<a href="{{ url_for('index') }}" class="btn-back">← 返回首頁</a>
+
+<!-- 頁面標題 -->
+<div class="results-hero">
+    <h2>偵查結果</h2>
+    <div class="results-meta">
+        搜尋目標：
+        {% for u in usernames %}
+            <strong>{{ u }}</strong>{% if not loop.last %}、{% endif %}
+        {% endfor %}
+        &nbsp;·&nbsp; 完成時間：{{ timestamp | replace('_', ' ') }}
+    </div>
+</div>
+
+<!-- 統計列 -->
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="stat-num">{{ usernames | length }}</div>
+        <div class="stat-label">搜尋目標</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-num num-found">
+            {{ individual_reports | map(attribute='claimed_profiles') | map('length') | sum }}
         </div>
+        <div class="stat-label">找到帳號</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-num">{{ individual_reports | length }}</div>
+        <div class="stat-label">完成報告</div>
+    </div>
+</div>
+
+<!-- 關聯圖 -->
+{% if graph_file %}
+<div class="graph-section card-tw">
+    <div class="card-tw-title">帳號關聯圖</div>
+    <iframe class="graph-frame"
+        src="{{ url_for('download_report', filename=graph_file) }}"
+        title="帳號關聯圖">
+    </iframe>
+</div>
+{% endif %}
+
+<!-- 各使用者報告 -->
+{% if individual_reports %}
+<div class="card-tw-title">各目標報告</div>
+{% for report in individual_reports %}
+<div class="report-card">
+    <!-- 標題列 -->
+    <div class="report-card-header" onclick="toggleReport('rpt-{{ loop.index }}', this)">
+        <div class="report-username">
+            {{ report.username }}
+            {% if report.claimed_profiles %}
+            <span class="report-count">{{ report.claimed_profiles | length }} 個帳號</span>
+            {% else %}
+            <span style="font-size:0.78rem;color:var(--text-muted);font-weight:400">未找到帳號</span>
+            {% endif %}
+        </div>
+        <span class="chevron-icon" id="icon-{{ loop.index }}">▼</span>
+    </div>
+
+    <!-- 內容 -->
+    <div class="report-card-body" id="rpt-{{ loop.index }}">
+        <!-- 下載列 -->
+        <div class="download-row">
+            <a class="dl-btn" href="{{ url_for('download_report', filename=report.csv_file) }}">
+                ↓ CSV
+            </a>
+            <a class="dl-btn" href="{{ url_for('download_report', filename=report.json_file) }}">
+                ↓ JSON
+            </a>
+            {% if report.pdf_file %}
+            <a class="dl-btn" href="{{ url_for('download_report', filename=report.pdf_file) }}">
+                ↓ PDF
+            </a>
+            {% else %}
+            <span class="dl-btn" style="opacity:0.35;cursor:default;"
+                title="需安裝 PDF 套件：pip install 'maigret[pdf]'">
+                PDF（未安裝）
+            </span>
+            {% endif %}
+            <a class="dl-btn" href="{{ url_for('download_report', filename=report.html_file) }}">
+                ↓ HTML
+            </a>
+        </div>
+
+        <!-- 找到的帳號 -->
+        {% if report.claimed_profiles %}
+        <div class="profiles-title">找到的帳號（{{ report.claimed_profiles | length }} 筆）</div>
+        <ul class="profile-list">
+            {% for profile in report.claimed_profiles %}
+            <li class="profile-item">
+                <div class="profile-left">
+                    <span style="color:var(--status-claimed,#10b981);font-size:9px;flex-shrink:0;line-height:1">●</span>
+                    <img class="profile-favicon"
+                        src="https://www.google.com/s2/favicons?domain={{ profile.url }}"
+                        onerror="this.style.display='none'" alt="">
+                    <a class="profile-link" href="{{ profile.url }}" target="_blank" rel="noopener">
+                        {{ profile.site_name }}
+                    </a>
+                </div>
+                {% if profile.tags %}
+                <div class="tag-list">
+                    {% for tag in profile.tags %}
+                    <span class="tag-badge {% if tag in ['taiwan','zh_TW'] %}taiwan-tag{% endif %}">
+                        {{ tag }}
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
         {% else %}
-        <p>No individual reports available.</p>
+        <div style="color:var(--text-muted);font-size:0.88rem;padding:0.5rem 0;">
+            此目標在已掃描的站點中未找到帳號。
+        </div>
         {% endif %}
-     </div>
-     
-     <script>
-     function toggleReport(header) {
-        const reportId = header.getAttribute('data-target');
-        const content = document.getElementById(reportId);
-        content.classList.toggle('show');
-        header.querySelector('.chevron').classList.toggle('collapsed');
-     }
-     </script>
+    </div>
+</div>
+{% endfor %}
+
+{% else %}
+<div class="card-tw" style="text-align:center; padding: 2.5rem;">
+    <div style="font-size:2rem;margin-bottom:0.75rem;">🔍</div>
+    <div style="color:var(--text-muted);">沒有可用的個人報告。</div>
+</div>
+{% endif %}
+
+<script>
+function toggleReport(id, header) {
+    const body = document.getElementById(id);
+    body.classList.toggle('show');
+    const icon = header.querySelector('.chevron-icon');
+    if (icon) icon.classList.toggle('open');
+}
+
+// 預設展開第一個
+document.addEventListener('DOMContentLoaded', () => {
+    const first = document.getElementById('rpt-1');
+    if (first) {
+        first.classList.add('show');
+        const hdr = first.previousElementSibling;
+        if (hdr) {
+            const icon = hdr.querySelector('.chevron-icon');
+            if (icon) icon.classList.add('open');
+        }
+    }
+});
+</script>
 {% endblock %}
