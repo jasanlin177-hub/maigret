@@ -69,13 +69,15 @@ async def maigret_search(username, options):
         site_list = options.get('site_list', [])
         logger.info(f"Filtering sites by tags: {tags}, excluded: {excluded_tags}")
 
+        id_type = options.get('id_type', 'username')
+
         sites = db.ranked_sites_dict(
             top=top_sites,
             tags=tags,
             excluded_tags=excluded_tags,
             names=site_list,
             disabled=False,
-            id_type='username',
+            id_type=id_type,
         )
 
         logger.info(f"Found {len(sites)} sites matching the tag criteria")
@@ -85,7 +87,7 @@ async def maigret_search(username, options):
             site_dict=sites,
             timeout=int(options.get('timeout', 30)),
             logger=logger,
-            id_type='username',
+            id_type=id_type,
             cookies=app.config["COOKIES_FILE"] if options.get('use_cookies') else None,
             is_parsing_enabled=(not options.get('disable_extracting', False)),
             recursive_search_enabled=(
@@ -275,6 +277,7 @@ def search():
         'site_list': [
             s.strip() for s in request.form.get('site', '').split(',') if s.strip()
         ],
+        'id_type': request.form.get('search_type', 'username'),
     }
 
     logging.info(

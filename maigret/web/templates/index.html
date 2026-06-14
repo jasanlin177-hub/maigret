@@ -16,26 +16,31 @@
         display: inline-block;
         padding: 5px 10px;
         border-radius: 15px;
-        background-color: #dc3545;
-        color: white;
+        background-color: var(--tag-neutral);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
         cursor: pointer;
-        font-size: 14px;
-        transition: all 0.3s ease;
+        font-size: 13px;
+        transition: all 0.2s ease;
         user-select: none;
     }
 
     .tag.selected {
-        background-color: #28a745;
+        background-color: var(--tag-include);
+        border-color: var(--success);
+        color: #86efac;
     }
 
     .tag.excluded {
-        background-color: #343a40;
+        background-color: var(--tag-exclude);
+        border-color: var(--danger);
+        color: #fca5a5;
         text-decoration: line-through;
     }
 
     .tag:hover {
         transform: translateY(-2px);
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
     }
 
     .hidden-select {
@@ -46,10 +51,6 @@
         position: relative;
     }
 
-    .site-input {
-        width: 100%;
-    }
-
     .selected-sites {
         display: flex;
         flex-wrap: wrap;
@@ -58,10 +59,12 @@
     }
 
     .selected-site {
-        background-color: #214e7b;
+        background-color: var(--bg-elevated);
+        border: 1px solid var(--accent);
+        color: var(--text-primary);
         padding: 2px 8px;
         border-radius: 12px;
-        font-size: 14px;
+        font-size: 13px;
         display: inline-flex;
         align-items: center;
         gap: 5px;
@@ -69,51 +72,97 @@
 
     .remove-site {
         cursor: pointer;
-        color: #dc3545;
+        color: var(--danger);
         font-weight: bold;
-    }
-
-    .section-header {
-        cursor: pointer;
-        padding: 1rem;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 4px;
-        margin-bottom: 0.5rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .section-content {
-        padding: 1rem;
-        display: none;
-    }
-
-    .section-content.show {
-        display: block;
-    }
-
-    .chevron::after {
-        content: '▼';
-        transition: transform 0.2s;
-    }
-
-    .chevron.collapsed::after {
-        transform: rotate(-90deg);
-    }
-
-    .main-search-section {
-        background: rgba(255, 255, 255, 0.03);
-        padding: 2rem;
-        border-radius: 8px;
-        margin-bottom: 2rem;
     }
 
     .search-button {
         width: 100%;
         padding: 1rem;
-        font-size: 1.2rem;
-        margin-top: 2rem;
+        font-size: 1.1rem;
+        margin-top: 1.5rem;
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        transition: background 0.2s, box-shadow 0.2s;
+    }
+
+    .search-button:hover {
+        background: var(--accent-hover);
+        box-shadow: 0 4px 16px var(--accent-glow);
+    }
+
+    .search-type-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-elevated);
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+    .search-type-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+    .search-type-btn.active {
+        background: var(--accent-glow);
+        border-color: var(--accent);
+        color: var(--accent);
+        font-weight: 600;
+    }
+
+    .quick-filter-btn {
+        padding: 0.45rem 1rem;
+        border-radius: 20px;
+        border: 1px solid var(--accent);
+        background: var(--accent-glow);
+        color: var(--accent);
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+    .quick-filter-btn:hover {
+        background: var(--accent);
+        color: #fff;
+    }
+    .quick-filter-btn.active {
+        background: var(--accent);
+        color: #fff;
+        box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .tag-legend {
+        display: flex;
+        gap: 1.25rem;
+        flex-wrap: wrap;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-bottom: 0.75rem;
+    }
+
+    .tag-legend span {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
     }
 </style>
 
@@ -123,273 +172,375 @@
     {% endif %}
 
     <form method="POST" action="{{ url_for('search') }}" class="mb-4">
-        <!-- Main Search Section -->
-        <div class="main-search-section">
+
+        <!-- ── 快速篩選 ── -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem;">
+            <button type="button" class="quick-filter-btn" id="btnTW" onclick="applyQuickFilter('tw')">
+                🇹🇼 只查臺灣站
+            </button>
+            <button type="button" class="quick-filter-btn" id="btn500" onclick="applyTopFilter(500)">
+                查前 500 站
+            </button>
+            <button type="button" class="quick-filter-btn" id="btnAll" onclick="applyTopFilter(0)">
+                查全部站點
+            </button>
+            <button type="button" class="quick-filter-btn" id="btnClear" onclick="clearQuickFilter()" style="background:var(--bg-elevated);border-color:var(--border-color);color:var(--text-muted);">
+                ✕ 清除篩選
+            </button>
+        </div>
+
+        <!-- ── 查詢區 ── -->
+        <div class="card-tw">
+            <div class="card-tw-title">查詢目標</div>
+
+            <!-- 查詢類型 -->
+            <div class="mb-3">
+                <label class="form-label">查詢類型</label>
+                <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                    <label class="search-type-btn active" id="lbl-username">
+                        <input type="radio" name="search_type" value="username" checked hidden>
+                        👤 使用者名稱
+                    </label>
+                    <label class="search-type-btn" id="lbl-email">
+                        <input type="radio" name="search_type" value="email" hidden>
+                        ✉️ Email
+                    </label>
+                    <label class="search-type-btn" id="lbl-nickname">
+                        <input type="radio" name="search_type" value="nickname" hidden>
+                        🏷️ 暱稱
+                    </label>
+                </div>
+            </div>
+
             <div class="mb-4">
-                <label for="usernames" class="form-label h5">Usernames to Search</label>
+                <label for="usernames" class="form-label" id="queryLabel">使用者名稱</label>
                 <textarea class="form-control" id="usernames" name="usernames" rows="3" required
-                    placeholder="Enter one or more usernames (separated by spaces or commas)..."></textarea>
+                    placeholder="輸入一個或多個使用者名稱（空格或逗號分隔）..."></textarea>
             </div>
 
             <div class="row align-items-center">
-                <div class="col-md-6">
-                    <label for="top_sites" class="form-label">Number of Sites</label>
+                <div class="col-md-6 mb-3">
+                    <label for="top_sites" class="form-label">查詢站點數量</label>
                     <input type="number" class="form-control" id="top_sites" name="top_sites" min="1" max="10000"
-                        placeholder="Default: 500">
+                        placeholder="預設：500">
                 </div>
-                <div class="col-md-6">
-                    <label for="timeout" class="form-label">Timeout (seconds)</label>
+                <div class="col-md-6 mb-3">
+                    <label for="timeout" class="form-label">逾時（秒）</label>
                     <input type="number" class="form-control" id="timeout" name="timeout" min="1"
-                        placeholder="Default: 30">
+                        placeholder="預設：30">
                 </div>
-                <div class="col-12 mt-3">
+                <div class="col-12">
                     <div class="form-check">
-                        <input type="checkbox" class="form-check-input" id="all_sites" name="all_sites"
-                            onchange="document.getElementById('top_sites').disabled = this.checked;">
-                        <label class="form-check-label" for="all_sites">Search All Sites</label>
+                        <input type="checkbox" class="form-check-input" id="all_sites" name="all_sites">
+                        <label class="form-check-label" for="all_sites">查詢全部站點</label>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Filters Section -->
-        <div class="mb-4">
-            <div class="section-header" onclick="toggleSection('filters')">
-                <h5 class="mb-0">Filters</h5>
-                <span class="chevron"></span>
-            </div>
-            <div id="filters" class="section-content">
-                <div class="mb-3 site-input-container">
-                    <label for="site" class="form-label">Specify Sites (Optional)</label>
-                    <input type="text" class="form-control site-input" id="siteInput"
-                        placeholder="Type to search for sites..." list="siteOptions">
-                    <input type="hidden" id="site" name="site">
-                    <datalist id="siteOptions">
-                        {% for site in site_options %}
-                        <option value="{{ site }}">
-                            {% endfor %}
-                    </datalist>
-                    <div class="selected-sites" id="selectedSites"></div>
-                </div>
+        <!-- ── 篩選條件（可收合）── -->
+        <div class="collapsible-header" onclick="toggleCollapse('filters')">
+            <h6>篩選條件</h6>
+            <span class="chevron-icon">▼</span>
+        </div>
+        <div id="filters" class="collapsible-body">
 
-                <div class="mb-3">
-                    <label class="form-label">Tags (click to cycle: include → exclude → neutral)</label>
-                    <div class="mb-2">
-                        <small class="text-muted">
-                            <span style="display:inline-block;width:12px;height:12px;background:#28a745;border-radius:50%;"></span> Included (whitelist)
-                            &nbsp;&nbsp;
-                            <span style="display:inline-block;width:12px;height:12px;background:#343a40;border-radius:50%;"></span> Excluded (blacklist)
-                            &nbsp;&nbsp;
-                            <span style="display:inline-block;width:12px;height:12px;background:#dc3545;border-radius:50%;"></span> Neutral
-                        </small>
-                    </div>
-                    <div class="tag-cloud" id="tagCloud"></div>
-                    <select multiple class="hidden-select" id="tags" name="tags">
-                        <option value="gaming">Gaming</option>
-                        <option value="coding">Coding</option>
-                        <option value="photo">Photo</option>
-                        <option value="music">Music</option>
-                        <option value="blog">Blog</option>
-                        <option value="finance">Finance</option>
-                        <option value="freelance">Freelance</option>
-                        <option value="dating">Dating</option>
-                        <option value="tech">Tech</option>
-                        <option value="forum">Forum</option>
-                        <option value="porn">Porn</option>
-                        <option value="erotic">Erotic</option>
-                        <option value="webcam">Webcam</option>
-                        <option value="video">Video</option>
-                        <option value="movies">Movies</option>
-                        <option value="hacking">Hacking</option>
-                        <option value="art">Art</option>
-                        <option value="discussion">Discussion</option>
-                        <option value="sharing">Sharing</option>
-                        <option value="writing">Writing</option>
-                        <option value="wiki">Wiki</option>
-                        <option value="business">Business</option>
-                        <option value="shopping">Shopping</option>
-                        <option value="sport">Sport</option>
-                        <option value="books">Books</option>
-                        <option value="news">News</option>
-                        <option value="documents">Documents</option>
-                        <option value="travel">Travel</option>
-                        <option value="maps">Maps</option>
-                        <option value="hobby">Hobby</option>
-                        <option value="apps">Apps</option>
-                        <option value="classified">Classified</option>
-                        <option value="career">Career</option>
-                        <option value="geosocial">Geosocial</option>
-                        <option value="streaming">Streaming</option>
-                        <option value="education">Education</option>
-                        <option value="networking">Networking</option>
-                        <option value="torrent">Torrent</option>
-                        <option value="science">Science</option>
-                        <option value="medicine">Medicine</option>
-                        <option value="reading">Reading</option>
-                        <option value="stock">Stock</option>
-                        <option value="messaging">Messaging</option>
-                        <option value="trading">Trading</option>
-                        <option value="links">Links</option>
-                        <option value="fashion">Fashion</option>
-                        <option value="tasks">Tasks</option>
-                        <option value="military">Military</option>
-                        <option value="auto">Auto</option>
-                        <option value="gambling">Gambling</option>
-                        <option value="cybercriminal">Cybercriminal</option>
-                        <option value="review">Review</option>
-                        <option value="bookmarks">Bookmarks</option>
-                        <option value="design">Design</option>
-                        <option value="tor">Tor</option>
-                        <option value="i2p">I2P</option>
-                        <option value="q&a">Q&A</option>
-                        <option value="crypto">Crypto</option>
-                        <option value="ai">AI</option>
-                        <!-- Country tags -->
-                        <option value="ae" data-group="country">AE - United Arab Emirates</option>
-                        <option value="ao" data-group="country">AO - Angola</option>
-                        <option value="ar" data-group="country">AR - Argentina</option>
-                        <option value="at" data-group="country">AT - Austria</option>
-                        <option value="au" data-group="country">AU - Australia</option>
-                        <option value="az" data-group="country">AZ - Azerbaijan</option>
-                        <option value="bd" data-group="country">BD - Bangladesh</option>
-                        <option value="be" data-group="country">BE - Belgium</option>
-                        <option value="bg" data-group="country">BG - Bulgaria</option>
-                        <option value="br" data-group="country">BR - Brazil</option>
-                        <option value="by" data-group="country">BY - Belarus</option>
-                        <option value="ca" data-group="country">CA - Canada</option>
-                        <option value="ch" data-group="country">CH - Switzerland</option>
-                        <option value="cl" data-group="country">CL - Chile</option>
-                        <option value="cn" data-group="country">CN - China</option>
-                        <option value="co" data-group="country">CO - Colombia</option>
-                        <option value="cr" data-group="country">CR - Costa Rica</option>
-                        <option value="cz" data-group="country">CZ - Czechia</option>
-                        <option value="de" data-group="country">DE - Germany</option>
-                        <option value="dk" data-group="country">DK - Denmark</option>
-                        <option value="dz" data-group="country">DZ - Algeria</option>
-                        <option value="ee" data-group="country">EE - Estonia</option>
-                        <option value="eg" data-group="country">EG - Egypt</option>
-                        <option value="es" data-group="country">ES - Spain</option>
-                        <option value="eu" data-group="country">EU - European Union</option>
-                        <option value="fi" data-group="country">FI - Finland</option>
-                        <option value="fr" data-group="country">FR - France</option>
-                        <option value="gb" data-group="country">GB - United Kingdom</option>
-                        <option value="global" data-group="country">🌍 Global</option>
-                        <option value="gr" data-group="country">GR - Greece</option>
-                        <option value="hk" data-group="country">HK - Hong Kong</option>
-                        <option value="hr" data-group="country">HR - Croatia</option>
-                        <option value="hu" data-group="country">HU - Hungary</option>
-                        <option value="id" data-group="country">ID - Indonesia</option>
-                        <option value="ie" data-group="country">IE - Ireland</option>
-                        <option value="il" data-group="country">IL - Israel</option>
-                        <option value="in" data-group="country">IN - India</option>
-                        <option value="ir" data-group="country">IR - Iran</option>
-                        <option value="it" data-group="country">IT - Italy</option>
-                        <option value="jp" data-group="country">JP - Japan</option>
-                        <option value="kg" data-group="country">KG - Kyrgyzstan</option>
-                        <option value="kr" data-group="country">KR - Korea</option>
-                        <option value="kz" data-group="country">KZ - Kazakhstan</option>
-                        <option value="la" data-group="country">LA - Laos</option>
-                        <option value="lk" data-group="country">LK - Sri Lanka</option>
-                        <option value="lt" data-group="country">LT - Lithuania</option>
-                        <option value="ma" data-group="country">MA - Morocco</option>
-                        <option value="md" data-group="country">MD - Moldova</option>
-                        <option value="mg" data-group="country">MG - Madagascar</option>
-                        <option value="mk" data-group="country">MK - North Macedonia</option>
-                        <option value="mx" data-group="country">MX - Mexico</option>
-                        <option value="ng" data-group="country">NG - Nigeria</option>
-                        <option value="nl" data-group="country">NL - Netherlands</option>
-                        <option value="no" data-group="country">NO - Norway</option>
-                        <option value="ph" data-group="country">PH - Philippines</option>
-                        <option value="pk" data-group="country">PK - Pakistan</option>
-                        <option value="pl" data-group="country">PL - Poland</option>
-                        <option value="pt" data-group="country">PT - Portugal</option>
-                        <option value="re" data-group="country">RE - Réunion</option>
-                        <option value="ro" data-group="country">RO - Romania</option>
-                        <option value="rs" data-group="country">RS - Serbia</option>
-                        <option value="ru" data-group="country">RU - Russia</option>
-                        <option value="sa" data-group="country">SA - Saudi Arabia</option>
-                        <option value="sd" data-group="country">SD - Sudan</option>
-                        <option value="se" data-group="country">SE - Sweden</option>
-                        <option value="sg" data-group="country">SG - Singapore</option>
-                        <option value="sk" data-group="country">SK - Slovakia</option>
-                        <option value="sv" data-group="country">SV - El Salvador</option>
-                        <option value="th" data-group="country">TH - Thailand</option>
-                        <option value="tn" data-group="country">TN - Tunisia</option>
-                        <option value="tr" data-group="country">TR - Türkiye</option>
-                        <option value="tw" data-group="country">TW - Taiwan</option>
-                        <option value="ua" data-group="country">UA - Ukraine</option>
-                        <option value="uk" data-group="country">UK - United Kingdom</option>
-                        <option value="us" data-group="country">US - United States</option>
-                        <option value="uz" data-group="country">UZ - Uzbekistan</option>
-                        <option value="ve" data-group="country">VE - Venezuela</option>
-                        <option value="vi" data-group="country">VI - Virgin Islands</option>
-                        <option value="vn" data-group="country">VN - Viet Nam</option>
-                        <option value="za" data-group="country">ZA - South Africa</option>
-                    </select>
-                    <select multiple class="hidden-select" id="excludedTags" name="excluded_tags">
-                    </select>
+            <div class="mb-3 site-input-container">
+                <label for="site" class="form-label">指定站點（選填）</label>
+                <input type="text" class="form-control" id="siteInput"
+                    placeholder="輸入關鍵字搜尋站點..." list="siteOptions">
+                <input type="hidden" id="site" name="site">
+                <datalist id="siteOptions">
+                    {% for site in site_options %}
+                    <option value="{{ site }}">
+                    {% endfor %}
+                </datalist>
+                <div class="selected-sites" id="selectedSites"></div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">標籤篩選 <small>（點擊循環切換：納入 → 排除 → 不選）</small></label>
+                <div class="tag-legend">
+                    <span><span class="dot" style="background:var(--success)"></span>已納入（白名單）</span>
+                    <span><span class="dot" style="background:var(--danger)"></span>已排除（黑名單）</span>
+                    <span><span class="dot" style="background:var(--text-muted)"></span>不選</span>
                 </div>
+                <div class="tag-cloud" id="tagCloud"></div>
+                <select multiple class="hidden-select" id="tags" name="tags">
+                    <option value="gaming">Gaming</option>
+                    <option value="coding">Coding</option>
+                    <option value="photo">Photo</option>
+                    <option value="music">Music</option>
+                    <option value="blog">Blog</option>
+                    <option value="finance">Finance</option>
+                    <option value="freelance">Freelance</option>
+                    <option value="dating">Dating</option>
+                    <option value="tech">Tech</option>
+                    <option value="forum">Forum</option>
+                    <option value="porn">Porn</option>
+                    <option value="erotic">Erotic</option>
+                    <option value="webcam">Webcam</option>
+                    <option value="video">Video</option>
+                    <option value="movies">Movies</option>
+                    <option value="hacking">Hacking</option>
+                    <option value="art">Art</option>
+                    <option value="discussion">Discussion</option>
+                    <option value="sharing">Sharing</option>
+                    <option value="writing">Writing</option>
+                    <option value="wiki">Wiki</option>
+                    <option value="business">Business</option>
+                    <option value="shopping">Shopping</option>
+                    <option value="sport">Sport</option>
+                    <option value="books">Books</option>
+                    <option value="news">News</option>
+                    <option value="documents">Documents</option>
+                    <option value="travel">Travel</option>
+                    <option value="maps">Maps</option>
+                    <option value="hobby">Hobby</option>
+                    <option value="apps">Apps</option>
+                    <option value="classified">Classified</option>
+                    <option value="career">Career</option>
+                    <option value="geosocial">Geosocial</option>
+                    <option value="streaming">Streaming</option>
+                    <option value="education">Education</option>
+                    <option value="networking">Networking</option>
+                    <option value="torrent">Torrent</option>
+                    <option value="science">Science</option>
+                    <option value="medicine">Medicine</option>
+                    <option value="reading">Reading</option>
+                    <option value="stock">Stock</option>
+                    <option value="messaging">Messaging</option>
+                    <option value="trading">Trading</option>
+                    <option value="links">Links</option>
+                    <option value="fashion">Fashion</option>
+                    <option value="tasks">Tasks</option>
+                    <option value="military">Military</option>
+                    <option value="auto">Auto</option>
+                    <option value="gambling">Gambling</option>
+                    <option value="cybercriminal">Cybercriminal</option>
+                    <option value="review">Review</option>
+                    <option value="bookmarks">Bookmarks</option>
+                    <option value="design">Design</option>
+                    <option value="tor">Tor</option>
+                    <option value="i2p">I2P</option>
+                    <option value="q&a">Q&amp;A</option>
+                    <option value="crypto">Crypto</option>
+                    <option value="ai">AI</option>
+                    <!-- 國家標籤 -->
+                    <option value="ae" data-group="country">AE - 阿拉伯聯合大公國</option>
+                    <option value="ao" data-group="country">AO - 安哥拉</option>
+                    <option value="ar" data-group="country">AR - 阿根廷</option>
+                    <option value="at" data-group="country">AT - 奧地利</option>
+                    <option value="au" data-group="country">AU - 澳大利亞</option>
+                    <option value="az" data-group="country">AZ - 亞塞拜然</option>
+                    <option value="bd" data-group="country">BD - 孟加拉</option>
+                    <option value="be" data-group="country">BE - 比利時</option>
+                    <option value="bg" data-group="country">BG - 保加利亞</option>
+                    <option value="br" data-group="country">BR - 巴西</option>
+                    <option value="by" data-group="country">BY - 白俄羅斯</option>
+                    <option value="ca" data-group="country">CA - 加拿大</option>
+                    <option value="ch" data-group="country">CH - 瑞士</option>
+                    <option value="cl" data-group="country">CL - 智利</option>
+                    <option value="cn" data-group="country">CN - 中國</option>
+                    <option value="co" data-group="country">CO - 哥倫比亞</option>
+                    <option value="cr" data-group="country">CR - 哥斯大黎加</option>
+                    <option value="cz" data-group="country">CZ - 捷克</option>
+                    <option value="de" data-group="country">DE - 德國</option>
+                    <option value="dk" data-group="country">DK - 丹麥</option>
+                    <option value="dz" data-group="country">DZ - 阿爾及利亞</option>
+                    <option value="ee" data-group="country">EE - 愛沙尼亞</option>
+                    <option value="eg" data-group="country">EG - 埃及</option>
+                    <option value="es" data-group="country">ES - 西班牙</option>
+                    <option value="eu" data-group="country">EU - 歐盟</option>
+                    <option value="fi" data-group="country">FI - 芬蘭</option>
+                    <option value="fr" data-group="country">FR - 法國</option>
+                    <option value="gb" data-group="country">GB - 英國</option>
+                    <option value="global" data-group="country">🌍 全球</option>
+                    <option value="gr" data-group="country">GR - 希臘</option>
+                    <option value="hk" data-group="country">HK - 香港</option>
+                    <option value="hr" data-group="country">HR - 克羅埃西亞</option>
+                    <option value="hu" data-group="country">HU - 匈牙利</option>
+                    <option value="id" data-group="country">ID - 印尼</option>
+                    <option value="ie" data-group="country">IE - 愛爾蘭</option>
+                    <option value="il" data-group="country">IL - 以色列</option>
+                    <option value="in" data-group="country">IN - 印度</option>
+                    <option value="ir" data-group="country">IR - 伊朗</option>
+                    <option value="it" data-group="country">IT - 義大利</option>
+                    <option value="jp" data-group="country">JP - 日本</option>
+                    <option value="kg" data-group="country">KG - 吉爾吉斯</option>
+                    <option value="kr" data-group="country">KR - 南韓</option>
+                    <option value="kz" data-group="country">KZ - 哈薩克</option>
+                    <option value="la" data-group="country">LA - 寮國</option>
+                    <option value="lk" data-group="country">LK - 斯里蘭卡</option>
+                    <option value="lt" data-group="country">LT - 立陶宛</option>
+                    <option value="ma" data-group="country">MA - 摩洛哥</option>
+                    <option value="md" data-group="country">MD - 摩爾多瓦</option>
+                    <option value="mg" data-group="country">MG - 馬達加斯加</option>
+                    <option value="mk" data-group="country">MK - 北馬其頓</option>
+                    <option value="mx" data-group="country">MX - 墨西哥</option>
+                    <option value="ng" data-group="country">NG - 奈及利亞</option>
+                    <option value="nl" data-group="country">NL - 荷蘭</option>
+                    <option value="no" data-group="country">NO - 挪威</option>
+                    <option value="ph" data-group="country">PH - 菲律賓</option>
+                    <option value="pk" data-group="country">PK - 巴基斯坦</option>
+                    <option value="pl" data-group="country">PL - 波蘭</option>
+                    <option value="pt" data-group="country">PT - 葡萄牙</option>
+                    <option value="re" data-group="country">RE - 留尼旺</option>
+                    <option value="ro" data-group="country">RO - 羅馬尼亞</option>
+                    <option value="rs" data-group="country">RS - 塞爾維亞</option>
+                    <option value="ru" data-group="country">RU - 俄羅斯</option>
+                    <option value="sa" data-group="country">SA - 沙烏地阿拉伯</option>
+                    <option value="sd" data-group="country">SD - 蘇丹</option>
+                    <option value="se" data-group="country">SE - 瑞典</option>
+                    <option value="sg" data-group="country">SG - 新加坡</option>
+                    <option value="sk" data-group="country">SK - 斯洛伐克</option>
+                    <option value="sv" data-group="country">SV - 薩爾瓦多</option>
+                    <option value="th" data-group="country">TH - 泰國</option>
+                    <option value="tn" data-group="country">TN - 突尼西亞</option>
+                    <option value="tr" data-group="country">TR - 土耳其</option>
+                    <option value="tw" data-group="country">TW - 臺灣</option>
+                    <option value="ua" data-group="country">UA - 烏克蘭</option>
+                    <option value="uk" data-group="country">UK - 英國</option>
+                    <option value="us" data-group="country">US - 美國</option>
+                    <option value="uz" data-group="country">UZ - 烏茲別克</option>
+                    <option value="ve" data-group="country">VE - 委內瑞拉</option>
+                    <option value="vi" data-group="country">VI - 美屬維京群島</option>
+                    <option value="vn" data-group="country">VN - 越南</option>
+                    <option value="za" data-group="country">ZA - 南非</option>
+                </select>
+                <select multiple class="hidden-select" id="excludedTags" name="excluded_tags"></select>
             </div>
         </div>
 
-        <!-- Advanced Options Section -->
-        <div class="mb-4">
-            <div class="section-header" onclick="toggleSection('advanced')">
-                <h5 class="mb-0">Advanced Options</h5>
-                <span class="chevron"></span>
+        <!-- ── 進階選項（可收合）── -->
+        <div class="collapsible-header" onclick="toggleCollapse('advanced')">
+            <h6>進階選項</h6>
+            <span class="chevron-icon">▼</span>
+        </div>
+        <div id="advanced" class="collapsible-body">
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="permute" name="permute">
+                <label class="form-check-label" for="permute">啟用使用者名稱排列組合</label>
             </div>
-            <div id="advanced" class="section-content">
-                <div class="mb-3 form-check">
-                    <input type="checkbox" class="form-check-input" id="permute" name="permute">
-                    <label class="form-check-label" for="permute">Enable Username Permutations</label>
-                </div>
-                <div class="mb-3 form-check">
-                    <input type="checkbox" class="form-check-input" id="disable_recursive_search"
-                        name="disable_recursive_search">
-                    <label class="form-check-label" for="disable_recursive_search">Disable Recursive Search</label>
-                </div>
-                <div class="mb-3 form-check">
-                    <input type="checkbox" class="form-check-input" id="disable_extracting" name="disable_extracting">
-                    <label class="form-check-label" for="disable_extracting">Disable Information Extraction</label>
-                </div>
-                <div class="mb-3 form-check">
-                    <input type="checkbox" class="form-check-input" id="with_domains" name="with_domains">
-                    <label class="form-check-label" for="with_domains">Check Domains</label>
-                </div>
-                <div class="mb-3">
-                    <label for="proxy" class="form-label">Proxy URL</label>
-                    <input type="text" class="form-control" id="proxy" name="proxy"
-                        placeholder="e.g., 127.0.0.1:1080">
-                </div>
-                <div class="mb-3">
-                    <label for="tor_proxy" class="form-label">TOR Proxy URL</label>
-                    <input type="text" class="form-control" id="tor_proxy" name="tor_proxy"
-                        placeholder="Default: 127.0.0.1:9050">
-                </div>
-                <div class="mb-3">
-                    <label for="i2p_proxy" class="form-label">I2P Proxy URL</label>
-                    <input type="text" class="form-control" id="i2p_proxy" name="i2p_proxy"
-                        placeholder="Default: 127.0.0.1:4444">
-                </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="disable_recursive_search"
+                    name="disable_recursive_search">
+                <label class="form-check-label" for="disable_recursive_search">停用遞迴搜尋</label>
+            </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="disable_extracting" name="disable_extracting">
+                <label class="form-check-label" for="disable_extracting">停用資訊擷取</label>
+            </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="with_domains" name="with_domains">
+                <label class="form-check-label" for="with_domains">查詢網域</label>
+            </div>
+            <div class="mb-3">
+                <label for="proxy" class="form-label">代理伺服器 URL</label>
+                <input type="text" class="form-control" id="proxy" name="proxy"
+                    placeholder="例：127.0.0.1:1080">
+            </div>
+            <div class="mb-3">
+                <label for="tor_proxy" class="form-label">TOR 代理 URL</label>
+                <input type="text" class="form-control" id="tor_proxy" name="tor_proxy"
+                    placeholder="預設：127.0.0.1:9050">
+            </div>
+            <div class="mb-3">
+                <label for="i2p_proxy" class="form-label">I2P 代理 URL</label>
+                <input type="text" class="form-control" id="i2p_proxy" name="i2p_proxy"
+                    placeholder="預設：127.0.0.1:4444">
             </div>
         </div>
 
-        <button type="submit" class="btn search-button" style="background-color: rgb(249, 207, 0); color: black;">
-            Start Search
-        </button>
+        <button type="submit" class="search-button">開始查詢</button>
     </form>
 </div>
 
 <script>
-    function toggleSection(sectionId) {
-        const content = document.getElementById(sectionId);
-        const header = content.previousElementSibling;
-        content.classList.toggle('show');
-        header.querySelector('.chevron').classList.toggle('collapsed');
+    // 查詢類型切換
+    document.querySelectorAll('input[name="search_type"]').forEach(radio => {
+        radio.addEventListener('change', function () {
+            document.querySelectorAll('.search-type-btn').forEach(l => l.classList.remove('active'));
+            this.parentElement.classList.add('active');
+            const labels = { username: '使用者名稱', email: 'Email', nickname: '暱稱' };
+            const placeholders = {
+                username: '輸入一個或多個使用者名稱（空格或逗號分隔）...',
+                email: '輸入一個或多個 Email 地址（空格或逗號分隔）...',
+                nickname: '輸入一個或多個暱稱（空格或逗號分隔）...'
+            };
+            document.getElementById('queryLabel').textContent = labels[this.value];
+            document.getElementById('usernames').placeholder = placeholders[this.value];
+        });
+    });
+
+    function applyTopFilter(n) {
+        const topInput = document.getElementById('top_sites');
+        const allCheck = document.getElementById('all_sites');
+        document.querySelectorAll('.quick-filter-btn').forEach(b => b.classList.remove('active'));
+        if (n === 0) {
+            allCheck.checked = true;
+            topInput.disabled = true;
+            topInput.value = '';
+            document.getElementById('btnAll').classList.add('active');
+        } else {
+            allCheck.checked = false;
+            topInput.disabled = false;
+            topInput.value = n;
+            document.getElementById('btn500').classList.add('active');
+        }
+    }
+
+    function applyQuickFilter(countryCode) {
+        // 先清除所有 tag 狀態
+        document.querySelectorAll('#tagCloud .tag').forEach(t => {
+            t.classList.remove('selected', 'excluded');
+        });
+        // 把指定國家 tag 設為 selected
+        const target = document.querySelector(`#tagCloud .tag[data-value="${countryCode}"]`);
+        if (target) {
+            target.classList.add('selected');
+            // 展開篩選條件區塊讓使用者看到
+            const body = document.getElementById('filters');
+            if (body && !body.classList.contains('show')) {
+                toggleCollapse('filters');
+            }
+        }
+        // 更新 hidden selects
+        updateTagSelects();
+        // 按鈕高亮
+        document.querySelectorAll('.quick-filter-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('btnTW').classList.add('active');
+    }
+
+    function clearQuickFilter() {
+        document.querySelectorAll('#tagCloud .tag').forEach(t => {
+            t.classList.remove('selected', 'excluded');
+        });
+        updateTagSelects();
+        document.querySelectorAll('.quick-filter-btn').forEach(b => b.classList.remove('active'));
+    }
+
+    function updateTagSelects() {
+        const hiddenSelect = document.getElementById('tags');
+        const excludedSelect = document.getElementById('excludedTags');
+        if (!hiddenSelect) return;
+        Array.from(hiddenSelect.options).forEach(opt => opt.selected = false);
+        excludedSelect.innerHTML = '';
+        document.querySelectorAll('#tagCloud .tag').forEach(tagEl => {
+            const val = tagEl.dataset.value;
+            if (tagEl.classList.contains('selected')) {
+                const option = Array.from(hiddenSelect.options).find(opt => opt.value === val);
+                if (option) option.selected = true;
+            } else if (tagEl.classList.contains('excluded')) {
+                const opt = document.createElement('option');
+                opt.value = val;
+                opt.selected = true;
+                excludedSelect.appendChild(opt);
+            }
+        });
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        // Tag cloud functionality with include/exclude (whitelist/blacklist) support
         const tagCloud = document.getElementById('tagCloud');
         const hiddenSelect = document.getElementById('tags');
         const excludedSelect = document.getElementById('excludedTags');
@@ -399,32 +550,12 @@
             group: opt.dataset.group || 'category'
         }));
 
-        function updateTagSelects() {
-            // Clear and repopulate hidden selects based on tag states
-            Array.from(hiddenSelect.options).forEach(opt => opt.selected = false);
-            // Clear excluded select
-            excludedSelect.innerHTML = '';
-
-            document.querySelectorAll('#tagCloud .tag').forEach(tagEl => {
-                const val = tagEl.dataset.value;
-                if (tagEl.classList.contains('selected')) {
-                    const option = Array.from(hiddenSelect.options).find(opt => opt.value === val);
-                    if (option) option.selected = true;
-                } else if (tagEl.classList.contains('excluded')) {
-                    const opt = document.createElement('option');
-                    opt.value = val;
-                    opt.selected = true;
-                    excludedSelect.appendChild(opt);
-                }
-            });
-        }
-
         let lastGroup = '';
         allTags.forEach(tag => {
             if (tag.group !== lastGroup && tag.group === 'country') {
                 const separator = document.createElement('div');
-                separator.style.cssText = 'width:100%;margin:8px 0 4px;padding:4px 0;border-top:1px solid rgba(0,0,0,0.15);font-size:13px;color:#666;';
-                separator.textContent = 'Countries';
+                separator.style.cssText = 'width:100%;margin:8px 0 4px;padding:4px 0;border-top:1px solid var(--border-color);font-size:12px;color:var(--text-muted);';
+                separator.textContent = '國家／地區';
                 tagCloud.appendChild(separator);
             }
             lastGroup = tag.group;
@@ -434,18 +565,14 @@
             tagElement.textContent = tag.label;
             tagElement.dataset.value = tag.value;
 
-            // Single click cycles: neutral -> included -> excluded -> neutral
             tagElement.addEventListener('click', function (e) {
                 e.preventDefault();
                 if (this.classList.contains('selected')) {
-                    // included -> excluded
                     this.classList.remove('selected');
                     this.classList.add('excluded');
                 } else if (this.classList.contains('excluded')) {
-                    // excluded -> neutral
                     this.classList.remove('excluded');
                 } else {
-                    // neutral -> included
                     this.classList.add('selected');
                 }
                 updateTagSelects();
@@ -454,7 +581,7 @@
             tagCloud.appendChild(tagElement);
         });
 
-        // Site selection functionality
+        // 站點選擇
         const siteInput = document.getElementById('siteInput');
         const hiddenInput = document.getElementById('site');
         const selectedSitesContainer = document.getElementById('selectedSites');
@@ -478,37 +605,27 @@
         function removeSite(site) {
             selectedSites.delete(site);
             updateHiddenInput();
-            const siteElements = selectedSitesContainer.querySelectorAll('.selected-site');
-            siteElements.forEach(el => {
-                if (el.querySelector('.remove-site').dataset.site === site) {
-                    el.remove();
-                }
+            selectedSitesContainer.querySelectorAll('.selected-site').forEach(el => {
+                if (el.querySelector('.remove-site').dataset.site === site) el.remove();
             });
         }
 
-        siteInput.addEventListener('change', function (e) {
+        siteInput.addEventListener('change', function () {
             const value = this.value.trim();
-            if (value) {
-                addSite(value);
-                this.value = '';
-            }
+            if (value) { addSite(value); this.value = ''; }
         });
 
         selectedSitesContainer.addEventListener('click', function (e) {
-            if (e.target.classList.contains('remove-site')) {
-                removeSite(e.target.dataset.site);
-            }
+            if (e.target.classList.contains('remove-site')) removeSite(e.target.dataset.site);
         });
 
         siteInput.addEventListener('paste', function (e) {
             e.preventDefault();
             const paste = (e.clipboardData || window.clipboardData).getData('text');
-            const sites = paste.split(',').map(site => site.trim()).filter(site => site);
-            sites.forEach(addSite);
+            paste.split(',').map(s => s.trim()).filter(s => s).forEach(addSite);
         });
 
-        const form = document.querySelector('form');
-        form.addEventListener('submit', function (e) {
+        document.querySelector('form').addEventListener('submit', function () {
             const selectedTags = Array.from(tagCloud.querySelectorAll('.tag.selected'));
             Array.from(hiddenSelect.options).forEach(opt => {
                 opt.selected = selectedTags.some(tag => tag.dataset.value === opt.value);
