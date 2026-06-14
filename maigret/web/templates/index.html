@@ -173,9 +173,12 @@
 
     <form method="POST" action="{{ url_for('search') }}" class="mb-4">
 
+        <!-- 只查臺灣站時送出的標籤（停用時不會送出） -->
+        <input type="hidden" name="tags" id="twTagInput" value="taiwan" disabled>
+
         <!-- ── 快速篩選 ── -->
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem;">
-            <button type="button" class="quick-filter-btn" id="btnTW" onclick="applyQuickFilter('tw')">
+            <button type="button" class="quick-filter-btn" id="btnTW" onclick="applyTaiwanFilter()">
                 🇹🇼 只查臺灣站
             </button>
             <button type="button" class="quick-filter-btn" id="btn500" onclick="applyTopFilter(500)">

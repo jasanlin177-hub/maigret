@@ -3,6 +3,7 @@ from flask import (
     render_template,
     request,
     send_from_directory,
+    send_file,
     Response,
     flash,
     redirect,
@@ -33,7 +34,9 @@ job_results = {}
 app.config["MAIGRET_DB_FILE"] = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'resources', 'data.json')
 app.config["COOKIES_FILE"] = "cookies.txt"
 app.config["UPLOAD_FOLDER"] = 'uploads'
-app.config["REPORTS_FOLDER"] = os.path.abspath('/tmp/maigret_reports')
+app.config["REPORTS_FOLDER"] = os.path.abspath(
+    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'reports')
+)
 
 
 def setup_logger(log_level, name):
@@ -98,6 +101,7 @@ async def maigret_search(username, options):
             tor_proxy=options.get('tor_proxy', None),
             i2p_proxy=options.get('i2p_proxy', None),
             cloudflare_bypass=cf_bypass_config,
+            dns_resolver='threaded',  # Windows 上 aiodns 常失敗，強制用系統 DNS
         )
         return results
     except Exception as e:
@@ -192,18 +196,10 @@ def process_search_task(usernames, options, timestamp):
             individual_reports.append(
                 {
                     'username': username,
-                    'csv_file': os.path.join(
-                        f"search_{timestamp}", f"report_{safe_username}.csv"
-                    ),
-                    'json_file': os.path.join(
-                        f"search_{timestamp}", f"report_{safe_username}.json"
-                    ),
-                    'pdf_file': os.path.join(
-                        f"search_{timestamp}", f"report_{safe_username}.pdf"
-                    ) if pdf_path else None,
-                    'html_file': os.path.join(
-                        f"search_{timestamp}", f"report_{safe_username}.html"
-                    ),
+                    'csv_file': f"search_{timestamp}/report_{safe_username}.csv",
+                    'json_file': f"search_{timestamp}/report_{safe_username}.json",
+                    'pdf_file': f"search_{timestamp}/report_{safe_username}.pdf" if pdf_path else None,
+                    'html_file': f"search_{timestamp}/report_{safe_username}.html",
                     'claimed_profiles': claimed_profiles,
                 }
             )
@@ -212,7 +208,7 @@ def process_search_task(usernames, options, timestamp):
         job_results[timestamp] = {
             'status': 'completed',
             'session_folder': f"search_{timestamp}",
-            'graph_file': os.path.join(f"search_{timestamp}", "combined_graph.html"),
+            'graph_file': f"search_{timestamp}/combined_graph.html",
             'usernames': usernames,
             'individual_reports': individual_reports,
         }
@@ -364,10 +360,16 @@ def results(session_id):
 def download_report(filename):
     reports_root = app.config["REPORTS_FOLDER"]
     os.makedirs(reports_root, exist_ok=True)
-    try:
-        return send_from_directory(reports_root, filename)
-    except NotFound:
+    # Use os.path.join for Windows-compatible path building
+    full_path = os.path.normpath(os.path.join(reports_root, filename))
+    # Security: ensure resolved path stays within reports_root
+    if not full_path.startswith(os.path.normpath(reports_root)):
+        return "Access denied", 403
+    if not os.path.isfile(full_path):
+        logging.error(f"File not found: {full_path}")
         return "File not found", 404
+    try:
+        return send_file(full_path)
     except Exception as e:
         logging.error(f"Error serving file {filename}: {str(e)}")
         return "File not found", 404
