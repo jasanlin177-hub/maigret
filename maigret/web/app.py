@@ -164,7 +164,10 @@ def process_search_task(usernames, options, timestamp):
             maigret.report.save_json_report(
                 json_path, username, results, report_type='ndjson'
             )
-            maigret.report.save_pdf_report(pdf_path, context)
+            try:
+                maigret.report.save_pdf_report(pdf_path, context)
+            except Exception:
+                pdf_path = None  # PDF 套件未安裝，略過
             maigret.report.save_html_report(html_path, context)
 
             claimed_profiles = []
@@ -197,7 +200,7 @@ def process_search_task(usernames, options, timestamp):
                     ),
                     'pdf_file': os.path.join(
                         f"search_{timestamp}", f"report_{safe_username}.pdf"
-                    ),
+                    ) if pdf_path else None,
                     'html_file': os.path.join(
                         f"search_{timestamp}", f"report_{safe_username}.html"
                     ),
@@ -245,7 +248,7 @@ def index():
 def search():
     usernames_input = request.form.get('usernames', '').strip()
     if not usernames_input:
-        flash('At least one username is required', 'danger')
+        flash('請至少輸入一個查詢目標', 'danger')
         return redirect(url_for('index'))
 
     usernames = [
@@ -302,7 +305,7 @@ def status(timestamp):
 
     # Validate timestamp
     if timestamp not in background_jobs:
-        flash('Invalid search session.', 'danger')
+        flash('查詢階段無效，請重新查詢。', 'danger')
         logging.error(f"Invalid search session: {timestamp}")
         return redirect(url_for('index'))
 
@@ -315,11 +318,15 @@ def status(timestamp):
             return redirect(url_for('index'))
 
         if result['status'] == 'completed':
-            # Note: use the session_folder from the results to redirect
             return redirect(url_for('results', session_id=result['session_folder']))
         else:
-            error_msg = result.get('error', 'Unknown error occurred.')
-            flash(f'Search failed: {error_msg}', 'danger')
+            error_msg = result.get('error', '發生未知錯誤。')
+            # 將常見英文錯誤訊息轉為中文說明
+            if "pdf" in error_msg.lower() and "extra" in error_msg.lower():
+                error_msg = "PDF 報告套件未安裝，請執行：pip install 'maigret[pdf]'（其他格式報告仍可使用）"
+            elif "No module named" in error_msg:
+                error_msg = f"缺少必要套件：{error_msg}"
+            flash(f'查詢失敗：{error_msg}', 'danger')
             logging.error(f"Search failed for session {timestamp}: {error_msg}")
             return redirect(url_for('index'))
 
@@ -340,7 +347,7 @@ def results(session_id):
     )
 
     if not result_data:
-        flash('No results found for this session ID.', 'danger')
+        flash('找不到此次查詢的結果，請重新查詢。', 'danger')
         logging.error(f"Results for session {session_id} not found in job_results.")
         return redirect(url_for('index'))
 

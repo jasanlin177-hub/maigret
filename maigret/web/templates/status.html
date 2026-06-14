@@ -1,16 +1,19 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container mt-4 text-center">
-    <h2>Search in progress...</h2>
-    <p>Your request is being processed in the background. This page will automatically redirect once the results are ready.</p>
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading...</span>
+<div style="text-align:center;padding:4rem 1rem;">
+    <div style="font-size:2.5rem;margin-bottom:1rem;">🔍</div>
+    <h2 style="font-size:1.3rem;font-weight:600;margin-bottom:0.5rem;color:var(--text-primary);">
+        查詢進行中…
+    </h2>
+    <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:2rem;">
+        您的請求正在背景處理中，結果出來後頁面將自動跳轉。<br>
+        <small>Search in progress — this page auto-redirects when ready.</small>
+    </p>
+    <div class="spinner-border text-primary" role="status" style="width:2.5rem;height:2.5rem;">
+        <span class="visually-hidden">Loading...</span>
     </div>
     <script>
-    // Auto-refresh the page every 5 seconds to check completion
-    setTimeout(function() {
-        window.location.reload();
-    }, 5000);
+        setTimeout(function() { window.location.reload(); }, 5000);
     </script>
 </div>
 {% endblock %}
