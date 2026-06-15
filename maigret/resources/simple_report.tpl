@@ -28,6 +28,8 @@
     'channel_url': '頻道網址',
     'image': '頭像',
     'id': 'ID',
+    'uid': 'UID',
+    'blog_id': '部落格 ID',
     'youtube_channel_id': 'YouTube 頻道 ID',
     'latest_activity_at': '最後活動時間',
     'created_at': '建立時間',
@@ -35,6 +37,7 @@
     'followers': '追蹤者數',
     'following': '追蹤中數',
     'is_family_safe': '兒少友善',
+    'is_scratchteam': 'Scratch 官方團隊',
     'extractor': '資料來源',
     'verified': '已驗證',
     'country': '國家',
@@ -128,7 +131,7 @@
                         {% for k1, v1 in v.ids_data.items() %}
                             {% if k1 != 'image' %}
                             <tr>
-                                <th>{% if k1 in field_zh %}<span>{{ field_zh[k1] }}</span> <span style="color:#888;font-size:0.82em;font-weight:400;">{{ title(k1) }}</span>{% else %}{{ title(k1) }}{% endif %}</th>
+                                <th>{% if k1.lower() in field_zh %}<span>{{ field_zh[k1.lower()] }}</span> <span style="color:#888;font-size:0.82em;font-weight:400;">{{ title(k1) }}</span>{% else %}{{ title(k1) }}{% endif %}</th>
                                 <td>{% if v1 is iterable and (v1 is not string and v1 is not mapping) %}{{ v1 | join(', ') }}{% else %}{{ detect_link(v1) }}{% endif %}
                                 </td>
                             </tr>

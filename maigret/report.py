@@ -911,12 +911,12 @@ def generate_csv_report(username: str, results: dict, csvfile):
     writer = csv.writer(csvfile)
     writer.writerow(
         [
-            "使用者名稱 (username)",
-            "站點名稱 (name)",
+            "使用者名稱\n (username)",
+            "站點名稱\n (name)",
             "站點中文名稱",
-            "站點首頁 (url_main)",
-            "個人頁網址 (url_user)",
-            "帳號狀態 (exists)",
+            "站點首頁\n (url_main)",
+            "個人頁網址\n (url_user)",
+            "帳號狀態\n (exists)",
             "帳號狀態說明",
             "HTTP狀態碼 (http_status)",
             "HTTP說明",
