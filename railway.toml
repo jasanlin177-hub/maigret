@@ -1,8 +1,0 @@
-[build]
-dockerfilePath = "Dockerfile"
-dockerBuildTarget = "web"
-
-[deploy]
-healthcheckPath = "/"
-healthcheckTimeout = 300
-restartPolicyType = "on_failure"

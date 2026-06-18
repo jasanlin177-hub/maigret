@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: maigret
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    dockerBuildTarget: web
+    plan: free
+    envVars:
+      - key: FLASK_HOST
+        value: 0.0.0.0
+      - key: REPORTS_FOLDER
+        value: /tmp/reports
