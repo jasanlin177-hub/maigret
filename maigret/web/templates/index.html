@@ -479,6 +479,9 @@
     function applyTopFilter(n) {
         const topInput = document.getElementById('top_sites');
         const allCheck = document.getElementById('all_sites');
+        const twInput = document.getElementById('twTagInput');
+        // 切換到「站數」模式時，停用臺灣 tag
+        if (twInput) twInput.disabled = true;
         document.querySelectorAll('.quick-filter-btn').forEach(b => b.classList.remove('active'));
         if (n === 0) {
             allCheck.checked = true;
@@ -493,33 +496,37 @@
         }
     }
 
-    function applyQuickFilter(countryCode) {
-        // 先清除所有 tag 狀態
+    function applyTaiwanFilter() {
+        // 啟用隱藏的 taiwan tag 欄位，送出時 tags=taiwan
+        const twInput = document.getElementById('twTagInput');
+        if (twInput) twInput.disabled = false;
+        // 清除 tag cloud 視覺選擇並同步 hidden selects，避免重複/衝突
         document.querySelectorAll('#tagCloud .tag').forEach(t => {
             t.classList.remove('selected', 'excluded');
         });
-        // 把指定國家 tag 設為 selected
-        const target = document.querySelector(`#tagCloud .tag[data-value="${countryCode}"]`);
-        if (target) {
-            target.classList.add('selected');
-            // 展開篩選條件區塊讓使用者看到
-            const body = document.getElementById('filters');
-            if (body && !body.classList.contains('show')) {
-                toggleCollapse('filters');
-            }
-        }
-        // 更新 hidden selects
         updateTagSelects();
+        // 查所有帶 taiwan tag 的站（約 89 站），不受前 500 名次限制
+        const topInput = document.getElementById('top_sites');
+        const allCheck = document.getElementById('all_sites');
+        if (allCheck) allCheck.checked = true;
+        if (topInput) { topInput.disabled = true; topInput.value = ''; }
         // 按鈕高亮
         document.querySelectorAll('.quick-filter-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('btnTW').classList.add('active');
     }
 
     function clearQuickFilter() {
+        const twInput = document.getElementById('twTagInput');
+        if (twInput) twInput.disabled = true;
         document.querySelectorAll('#tagCloud .tag').forEach(t => {
             t.classList.remove('selected', 'excluded');
         });
         updateTagSelects();
+        // 恢復預設站數
+        const topInput = document.getElementById('top_sites');
+        const allCheck = document.getElementById('all_sites');
+        if (allCheck) allCheck.checked = false;
+        if (topInput) { topInput.disabled = false; topInput.value = '500'; }
         document.querySelectorAll('.quick-filter-btn').forEach(b => b.classList.remove('active'));
     }
 
