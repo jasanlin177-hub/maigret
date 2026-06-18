@@ -123,16 +123,22 @@ def save_xlsx_report(filename: str, username: str, results: dict):
         c.border = border
 
     # 欄寬（依內容調整）
-    widths = [16, 22, 30, 34, 46, 14, 17, 16, 22]
+    widths = [16, 22, 30, 34, 46, 14, 35, 16, 22]
     for i, w in enumerate(widths, start=1):
         ws.column_dimensions[get_column_letter(i)].width = w
 
-    # 內文：垂直置中、加框線；G/H/I 欄（7-9）水平置中
+    # 內文：垂直置中、加框線；C欄縮小字型；F/G/H/I 欄水平置中
     body_align = Alignment(vertical="center")
     center_align = Alignment(horizontal="center", vertical="center")
+    shrink_align = Alignment(vertical="center", shrink_to_fit=True)
     for row in ws.iter_rows(min_row=2):
         for cell in row:
-            cell.alignment = center_align if cell.column in (7, 8, 9) else body_align
+            if cell.column == 3:
+                cell.alignment = shrink_align
+            elif cell.column in (6, 7, 8, 9):
+                cell.alignment = center_align
+            else:
+                cell.alignment = body_align
             cell.border = border
 
     # 凍結標頭列 + 自動篩選
