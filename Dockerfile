@@ -22,7 +22,8 @@ ENTRYPOINT ["maigret"]
 
 # Web UI variant (default): auto-launches the web interface on $PORT
 FROM base AS web
-RUN pip install --no-cache-dir '.[pdf]'
+# openpyxl 供 Excel 報告下載；PDF 改用瀏覽器列印 HTML 報告，不再裝 [pdf]
+RUN pip install --no-cache-dir openpyxl
 ENV PORT=5000
 EXPOSE 5000
 ENTRYPOINT ["sh", "-c", "exec maigret --web \"$PORT\""]

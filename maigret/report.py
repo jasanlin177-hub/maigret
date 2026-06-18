@@ -67,6 +67,81 @@ def save_csv_report(filename: str, username: str, results: dict):
         generate_csv_report(username, results, f)
 
 
+def save_xlsx_report(filename: str, username: str, results: dict):
+    """產生格式化的 Excel 報告：欄寬、粗體標頭、凍結首列、自動篩選。"""
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Maigret 報告"
+
+    headers = [
+        "使用者名稱\n(username)",
+        "站點名稱\n(name)",
+        "站點中文名稱",
+        "站點首頁\n(url_main)",
+        "個人頁網址\n(url_user)",
+        "帳號狀態\n(exists)",
+        "帳號狀態說明",
+        "HTTP狀態碼\n(http_status)",
+        "HTTP說明",
+    ]
+    ws.append(headers)
+
+    for site in results:
+        status = 'Unknown'
+        if "status" in results[site]:
+            status = str(results[site]["status"].status)
+        http_code = results[site].get("http_status", 0)
+        ws.append(
+            [
+                username,
+                site,
+                _SITE_NAME_ZH.get(site, ""),
+                results[site].get("url_main", ""),
+                results[site].get("url_user", ""),
+                status,
+                _EXISTS_ZH.get(status, ""),
+                http_code,
+                _HTTP_STATUS_ZH.get(int(http_code) if http_code else 0, ""),
+            ]
+        )
+
+    # 標頭樣式：粗體白字、藍底、置中換行
+    header_font = Font(bold=True, color="FFFFFF", size=11)
+    header_fill = PatternFill("solid", fgColor="2563EB")
+    center = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    thin = Side(style="thin", color="D0D0D0")
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+    for col in range(1, len(headers) + 1):
+        c = ws.cell(row=1, column=col)
+        c.font = header_font
+        c.fill = header_fill
+        c.alignment = center
+        c.border = border
+
+    # 欄寬（依內容調整）
+    widths = [16, 22, 30, 34, 46, 14, 16, 16, 22]
+    for i, w in enumerate(widths, start=1):
+        ws.column_dimensions[get_column_letter(i)].width = w
+
+    # 內文：垂直置中、加框線
+    body_align = Alignment(vertical="center")
+    for row in ws.iter_rows(min_row=2):
+        for cell in row:
+            cell.alignment = body_align
+            cell.border = border
+
+    # 凍結標頭列 + 自動篩選
+    ws.freeze_panes = "A2"
+    ws.auto_filter.ref = ws.dimensions
+    ws.row_dimensions[1].height = 32
+
+    wb.save(filename)
+
+
 def save_txt_report(filename: str, username: str, results: dict):
     with open(filename, "w", encoding="utf-8") as f:
         generate_txt_report(username, results, f)

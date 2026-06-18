@@ -172,20 +172,22 @@ def process_search_task(usernames, options, timestamp):
             report_base = os.path.join(session_folder, f"report_{safe_username}")
 
             csv_path = f"{report_base}.csv"
+            xlsx_path = f"{report_base}.xlsx"
             json_path = f"{report_base}.json"
-            pdf_path = f"{report_base}.pdf"
             html_path = f"{report_base}.html"
 
             context = generate_report_context(general_results)
 
             maigret.report.save_csv_report(csv_path, username, results)
+            try:
+                maigret.report.save_xlsx_report(xlsx_path, username, results)
+            except Exception as e:
+                xlsx_path = None  # openpyxl 未安裝，略過
+                logging.warning(f"XLSX 報告產生失敗：{e}")
             maigret.report.save_json_report(
                 json_path, username, results, report_type='ndjson'
             )
-            try:
-                maigret.report.save_pdf_report(pdf_path, context)
-            except Exception:
-                pdf_path = None  # PDF 套件未安裝，略過
+            # PDF 改用瀏覽器列印 HTML 報告（中文正常），不再產生內建 PDF
             maigret.report.save_html_report(html_path, context)
 
             claimed_profiles = []
@@ -211,8 +213,8 @@ def process_search_task(usernames, options, timestamp):
                 {
                     'username': username,
                     'csv_file': f"search_{timestamp}/report_{safe_username}.csv",
+                    'xlsx_file': f"search_{timestamp}/report_{safe_username}.xlsx" if xlsx_path else None,
                     'json_file': f"search_{timestamp}/report_{safe_username}.json",
-                    'pdf_file': f"search_{timestamp}/report_{safe_username}.pdf" if pdf_path else None,
                     'html_file': f"search_{timestamp}/report_{safe_username}.html",
                     'claimed_profiles': claimed_profiles,
                 }

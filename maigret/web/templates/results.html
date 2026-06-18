@@ -294,21 +294,17 @@
             <a class="dl-btn" href="{{ url_for('download_report', filename=report.csv_file) }}">
                 ↓ CSV
             </a>
+            {% if report.xlsx_file %}
+            <a class="dl-btn" href="{{ url_for('download_report', filename=report.xlsx_file) }}">
+                ↓ Excel
+            </a>
+            {% endif %}
             <a class="dl-btn" href="{{ url_for('download_report', filename=report.json_file) }}">
                 ↓ JSON
             </a>
-            {% if report.pdf_file %}
-            <a class="dl-btn" href="{{ url_for('download_report', filename=report.pdf_file) }}">
-                ↓ PDF
-            </a>
-            {% else %}
-            <span class="dl-btn" style="opacity:0.35;cursor:default;"
-                title="需安裝 PDF 套件：pip install 'maigret[pdf]'">
-                PDF（未安裝）
-            </span>
-            {% endif %}
-            <a class="dl-btn" href="{{ url_for('download_report', filename=report.html_file) }}">
-                ↓ HTML
+            <a class="dl-btn" href="{{ url_for('download_report', filename=report.html_file) }}" target="_blank"
+                title="開啟 HTML 報告後，用瀏覽器列印（Ctrl+P）即可另存中文 PDF">
+                ↓ HTML　🖨 可列印成 PDF
             </a>
         </div>
 

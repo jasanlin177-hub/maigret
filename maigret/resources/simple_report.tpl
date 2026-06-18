@@ -11,11 +11,24 @@
     }
     @media print {
         .pagebreak { page-break-before: always; }
+        .no-print { display: none !important; }
     }
     .label-zh { font-weight: 600; }
     .label-en { color: #888; font-size: 0.85em; margin-left: 4px; }
+    .print-bar {
+        position: fixed; top: 16px; right: 16px; z-index: 999;
+    }
+    .print-btn {
+        background: #2563eb; color: #fff; border: none;
+        padding: 8px 18px; border-radius: 6px; font-size: 14px;
+        cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .print-btn:hover { background: #1d4ed8; }
 </style>
 <body>
+<div class="print-bar no-print">
+    <button class="print-btn" onclick="window.print()">🖨 列印 / 另存 PDF</button>
+</div>
 {% set field_zh = {
     'fullname': '全名',
     'username': '使用者名稱',
