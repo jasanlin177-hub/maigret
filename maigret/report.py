@@ -140,6 +140,40 @@ def save_xlsx_report(filename: str, username: str, results: dict):
     ws.auto_filter.ref = ws.dimensions
     ws.row_dimensions[1].height = 32
 
+    # 新增「狀態說明」工作表，避免誤解 Available/Unknown 等狀態
+    ws2 = wb.create_sheet("狀態說明")
+    explain = [
+        ["狀態 (exists)", "中文說明", "代表意義"],
+        ["Claimed", "✅ 帳號存在（已確認）", "Maigret 實際偵測到帳號，最可靠"],
+        [
+            "Available",
+            "❌ 查無帳號（用戶名未被使用）",
+            "此站查無此帳號／用戶名可註冊，並非找到帳號（常見 404）",
+        ],
+        [
+            "Unknown",
+            "❔ 無法判斷（連線錯誤或被阻擋）",
+            "逾時或被防爬阻擋（403／429／503 等），無法確認",
+        ],
+        ["Illegal", "⚠️ 格式不符（此站不接受此名稱）", "此站不接受這種格式的用戶名"],
+    ]
+    for r in explain:
+        ws2.append(r)
+    for col in range(1, 4):
+        c = ws2.cell(row=1, column=col)
+        c.font = header_font
+        c.fill = header_fill
+        c.alignment = center
+        c.border = border
+    ws2.column_dimensions["A"].width = 16
+    ws2.column_dimensions["B"].width = 32
+    ws2.column_dimensions["C"].width = 52
+    wrap_align = Alignment(vertical="center", wrap_text=True)
+    for row in ws2.iter_rows(min_row=2):
+        for cell in row:
+            cell.alignment = wrap_align
+            cell.border = border
+
     wb.save(filename)
 
 
@@ -679,13 +713,19 @@ _HTTP_STATUS_ZH = {
     504: "閘道逾時",
 }
 
+# 狀態語意（依 maigret.result.MaigretCheckStatus）：
+#   Claimed   = 確認偵測到帳號（最可靠）
+#   Available = 該站查無此帳號 / 用戶名未被使用（注意：不是「有帳號」）
+#   Unknown   = 偵測時發生錯誤（逾時、被擋），無法判斷
+#   Illegal   = 此站不接受這種格式的用戶名
 _EXISTS_ZH = {
-    "Available":  "帳號存在",
-    "Claimed":    "帳號已確認存在",
-    "Unknown":    "未知（無法判斷）",
-    "Not Found":  "帳號不存在",
-    "Assumed":    "推測存在",
-    "Error":      "查詢發生錯誤",
+    "Claimed":    "✅ 帳號存在（已確認）",
+    "Available":  "❌ 查無帳號（用戶名未被使用）",
+    "Unknown":    "❔ 無法判斷（連線錯誤或被阻擋）",
+    "Illegal":    "⚠️ 格式不符（此站不接受此名稱）",
+    "Not Found":  "❌ 查無帳號",
+    "Assumed":    "❔ 推測（未確認）",
+    "Error":      "❔ 查詢發生錯誤",
 }
 
 _SITE_NAME_ZH = {

@@ -223,6 +223,51 @@
         letter-spacing: 0.04em;
     }
     .btn-back:hover { color: var(--accent); }
+
+    /* ── 狀態說明 ── */
+    .status-legend {
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        background: var(--bg-card);
+        margin-bottom: 1.5rem;
+        padding: 0.5rem 1rem;
+    }
+    .status-legend summary {
+        cursor: pointer;
+        font-size: 0.85rem;
+        color: var(--text-primary);
+        font-weight: 500;
+        padding: 0.4rem 0;
+        user-select: none;
+    }
+    .status-legend summary:hover { color: var(--accent); }
+    .legend-body { padding: 0.5rem 0 0.75rem; }
+    .legend-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+    .legend-list li {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        line-height: 1.5;
+    }
+    .lg-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: 0.78rem;
+        font-weight: 500;
+        margin-right: 6px;
+        white-space: nowrap;
+    }
+    .lg-ok      { background: rgba(16,185,129,0.12);  color: #10b981; border: 1px solid rgba(16,185,129,0.25); }
+    .lg-no      { background: rgba(148,163,184,0.12); color: #94a3b8; border: 1px solid rgba(148,163,184,0.25); }
+    .lg-unknown { background: rgba(245,158,11,0.12);  color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+    .lg-illegal { background: rgba(248,113,113,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
 </style>
 
 <!-- 返回按鈕 -->
@@ -257,6 +302,26 @@
         <div class="stat-label">完成報告</div>
     </div>
 </div>
+
+<!-- 狀態說明 -->
+<details class="status-legend">
+    <summary>📖 結果狀態說明（點此展開，避免誤解）</summary>
+    <div class="legend-body">
+        <p style="margin:0 0 0.6rem;color:var(--text-muted);font-size:0.82rem;">
+            本頁「找到帳號」<strong>僅列出已確認存在</strong>的帳號。下載的 CSV／Excel 會列出所有掃描站點，狀態意義如下：
+        </p>
+        <ul class="legend-list">
+            <li><span class="lg-badge lg-ok">✅ 帳號存在（已確認）</span>
+                Maigret 實際偵測到帳號內容，<strong>最可靠</strong>。</li>
+            <li><span class="lg-badge lg-no">❌ 查無帳號（用戶名未被使用）</span>
+                該站查無此帳號／用戶名可註冊，<strong>並非找到帳號</strong>（常見 404）。</li>
+            <li><span class="lg-badge lg-unknown">❔ 無法判斷（連線錯誤或被阻擋）</span>
+                逾時或被防爬阻擋（403／429／503 等），無法確認，<strong>不代表有或沒有</strong>。</li>
+            <li><span class="lg-badge lg-illegal">⚠️ 格式不符</span>
+                此站不接受這種格式的用戶名。</li>
+        </ul>
+    </div>
+</details>
 
 <!-- 關聯圖 -->
 {% if graph_file %}
