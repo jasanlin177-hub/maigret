@@ -30,6 +30,17 @@ app.secret_key = os.getenv('FLASK_SECRET_KEY', os.urandom(24).hex())
 background_jobs: Dict[str, Any] = {}
 job_results = {}
 
+# 全域資料庫單例：3245 站的 data.json 只載入一次，避免每次請求重複載入吃光記憶體
+_DB_CACHE: Dict[str, Any] = {}
+
+
+def get_db() -> MaigretDatabase:
+    db_file = app.config["MAIGRET_DB_FILE"]
+    if _DB_CACHE.get("path") != db_file or _DB_CACHE.get("db") is None:
+        _DB_CACHE["db"] = MaigretDatabase().load_from_path(db_file)
+        _DB_CACHE["path"] = db_file
+    return _DB_CACHE["db"]
+
 # Configuration
 app.config["MAIGRET_DB_FILE"] = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'resources', 'data.json')
 app.config["COOKIES_FILE"] = "cookies.txt"
@@ -64,7 +75,7 @@ async def maigret_search(username, options):
                 f"modules=[{modules_summary}]"
             )
 
-        db = MaigretDatabase().load_from_path(app.config["MAIGRET_DB_FILE"])
+        db = get_db()
 
         top_sites = int(options.get('top_sites') or 500)
         if options.get('all_sites'):
@@ -152,7 +163,7 @@ def process_search_task(usernames, options, timestamp):
         maigret.report.save_graph_report(
             graph_path,
             general_results,
-            MaigretDatabase().load_from_path(app.config["MAIGRET_DB_FILE"]),
+            get_db(),
         )
 
         individual_reports = []
@@ -225,19 +236,17 @@ def process_search_task(usernames, options, timestamp):
 
 @app.route('/')
 def index():
-    # load site data for autocomplete
-    db = MaigretDatabase().load_from_path(app.config["MAIGRET_DB_FILE"])
-    site_options = []
-
-    for site in db.sites:
-        # add main site name
-        site_options.append(site.name)
-        # add URL if different from name
-        if site.url_main and site.url_main not in site_options:
-            site_options.append(site.url_main)
-
-    # sort and deduplicate
-    site_options = sorted(set(site_options))
+    # 自動完成清單也快取，避免每次首頁訪問都重算 3245 站的排序
+    site_options = _DB_CACHE.get("site_options")
+    if site_options is None:
+        db = get_db()
+        names = set()
+        for site in db.sites:
+            names.add(site.name)
+            if site.url_main:
+                names.add(site.url_main)
+        site_options = sorted(names)
+        _DB_CACHE["site_options"] = site_options
 
     return render_template('index.html', site_options=site_options)
 
