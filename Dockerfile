@@ -1,7 +1,7 @@
 FROM python:3.11-slim AS base
 LABEL maintainer="Soxoj <soxoj@protonmail.com>"
 WORKDIR /app
-RUN pip install --no-cache-dir --upgrade pip
+RUN pip install --no-cache-dir --upgrade pip poetry-core
 RUN apt-get update && \
     apt-get install --no-install-recommends -y \
       build-essential \
