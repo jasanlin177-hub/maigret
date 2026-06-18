@@ -34,8 +34,11 @@ job_results = {}
 app.config["MAIGRET_DB_FILE"] = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'resources', 'data.json')
 app.config["COOKIES_FILE"] = "cookies.txt"
 app.config["UPLOAD_FOLDER"] = 'uploads'
-app.config["REPORTS_FOLDER"] = os.path.abspath(
-    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'reports')
+app.config["REPORTS_FOLDER"] = os.environ.get(
+    "REPORTS_FOLDER",
+    os.path.abspath(
+        os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'reports')
+    )
 )
 
 
