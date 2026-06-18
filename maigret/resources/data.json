@@ -36741,13 +36741,22 @@
                 "taiwan",
                 "zh_TW"
             ],
-            "checkType": "status_code",
             "urlMain": "https://shopee.tw/",
             "url": "https://shopee.tw/{username}",
+            "urlProbe": "https://shopee.tw/api/v4/shop/get_shop_detail?username={username}",
             "usernameClaimed": "shopee",
             "usernameUnclaimed": "noonewouldeverusethis7",
+            "checkType": "message",
+            "absenceStrs": [
+                "invalid_username"
+            ],
             "alexaRank": 1500,
-            "disabled": true
+            "disabled": false,
+            "headers": {
+                "Referer": "https://shopee.tw/",
+                "Accept": "application/json, text/plain, */*",
+                "Accept-Language": "zh-TW,zh;q=0.9"
+            }
         },
         "LINETV": {
             "tags": [
