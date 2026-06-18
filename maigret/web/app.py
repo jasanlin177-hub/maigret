@@ -102,7 +102,7 @@ async def maigret_search(username, options):
         results = await maigret.search(
             username=username,
             site_dict=sites,
-            timeout=int(options.get('timeout', 30)),
+            timeout=int(options.get('timeout', 60)),
             logger=logger,
             id_type=id_type,
             cookies=app.config["COOKIES_FILE"] if options.get('use_cookies') else None,
@@ -275,7 +275,7 @@ def search():
 
     options = {
         'top_sites': request.form.get('top_sites') or '500',
-        'timeout': request.form.get('timeout') or '30',
+        'timeout': request.form.get('timeout') or '60',
         'use_cookies': 'use_cookies' in request.form,
         'all_sites': 'all_sites' in request.form,
         'disable_recursive_search': 'disable_recursive_search' in request.form,
