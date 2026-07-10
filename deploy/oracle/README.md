@@ -16,6 +16,12 @@
 5. 點「Create」，等待狀態變成 **Running**（約 1～2 分鐘）
 6. 記下 VM 的 **Public IP Address**
 
+> ⚠️ **常見狀況：建立失敗，錯誤訊息為「Out of capacity」**
+> `VM.Standard.A1.Flex` 是熱門的免費 ARM 機型，部分地區常出現資源調度不足，
+> 屬甲骨文平台本身問題，與你的設定無關。
+> 若遇到此狀況，可使用 [`retry-launch/`](retry-launch/README.md) 資料夾內的自動重試腳本，
+> 透過 Cloud Shell 定時嘗試建立，成功即自動停止，不需自己盯著手動重試。
+
 ## 前置：開放防火牆連接埠（甲骨文 Console 網頁操作）
 
 1. 進入該 VM 詳細頁 → 找到所屬 **Subnet** → 點進去 → **Security List**
