@@ -69,6 +69,24 @@ RETRY_INTERVAL_SECONDS=90
 # 以下不需修改
 # ────────────────────────────────────────────────────────────
 
+# 防止重複啟動（Cloud Shell 斷線重連時常會誤重播 Enter，導致腳本被啟動兩次以上，
+# 進而在容量釋出瞬間並行送出多個建立請求，有機會建出多台重複 VM）
+LOCK_FILE="/tmp/retry-launch-instance.lock"
+if [[ -f "$LOCK_FILE" ]]; then
+    existing_pid=$(cat "$LOCK_FILE")
+    if kill -0 "$existing_pid" 2>/dev/null; then
+        echo "錯誤：偵測到已有一個本腳本正在執行中（PID ${existing_pid}）。"
+        echo "為避免重複建立 VM，本次啟動已自動取消。"
+        echo "如需強制重跑，請先執行：kill ${existing_pid} && rm -f ${LOCK_FILE}"
+        exit 1
+    else
+        echo "偵測到過期的鎖檔（程序 ${existing_pid} 已不存在），自動清除後繼續。"
+        rm -f "$LOCK_FILE"
+    fi
+fi
+echo $$ > "$LOCK_FILE"
+trap 'rm -f "$LOCK_FILE"' EXIT
+
 if [[ "$COMPARTMENT_ID" == *xxxx* || "$SUBNET_ID" == *xxxx* || "$IMAGE_ID" == *xxxx* ]]; then
     echo "錯誤：請先填入上方「必填參數」區塊的實際 OCID，不能保留範例值。"
     exit 1
