@@ -1,0 +1,39 @@
+# ============================================================
+# Maigret 甲骨文 VPS 部署 — docker-compose.yml
+# 架構：Caddy（自動 HTTPS 反向代理）→ Maigret Web（Flask）
+# ============================================================
+
+services:
+  maigret:
+    build:
+      context: ../..              # 指向 maigret 專案根目錄（含 Dockerfile），相對於本檔案所在資料夾
+      dockerfile: Dockerfile
+      target: web
+    container_name: maigret-web
+    restart: unless-stopped
+    environment:
+      - FLASK_HOST=0.0.0.0
+      - REPORTS_FOLDER=/app/reports
+    volumes:
+      - ./data/reports:/app/reports   # 報告持久化，容器重啟不遺失
+    expose:
+      - "5000"
+    # 記憶體上限：依甲骨文 A1 (24GB) 環境可放寬，避免同時查詢時被系統 OOM Kill
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: maigret-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./caddy_data:/data
+      - ./caddy_config:/config
+    depends_on:
+      - maigret

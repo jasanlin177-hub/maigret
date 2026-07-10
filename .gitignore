@@ -53,5 +53,10 @@ config.json
 secrets.json
 diag_output.txt
 
+# 甲骨文 VPS 部署時的持久化資料（伺服器本機產生，不進版控）
+deploy/oracle/data/
+deploy/oracle/caddy_data/
+deploy/oracle/caddy_config/
+
 # Sphinx i18n: .mo are compiled from .po at build time
 docs/source/locale/**/*.mo
