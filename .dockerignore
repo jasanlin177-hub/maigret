@@ -6,3 +6,7 @@ tests/
 !/requirements.txt
 venv/
 
+# 部署腳本與伺服器本機產生的資料（含 Caddy 執行期間建立的 socket 檔案，
+# 沒有讀取權限會導致 docker build 打包 context 時失敗），不需要進 image
+deploy/
+
