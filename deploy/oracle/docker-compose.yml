@@ -14,8 +14,10 @@ services:
     environment:
       - FLASK_HOST=0.0.0.0
       - REPORTS_FOLDER=/app/reports
+      - COUNTERS_DB_FILE=/app/data/counters.db
     volumes:
       - ./data/reports:/app/reports   # 報告持久化，容器重啟不遺失
+      - ./data/db:/app/data           # 使用次數計數器（開頁/查詢次數），容器重啟不歸零
     expose:
       - "5000"
     # 記憶體上限：依甲骨文 A1 (24GB) 環境可放寬，避免同時查詢時被系統 OOM Kill

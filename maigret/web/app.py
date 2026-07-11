@@ -12,10 +12,11 @@ from flask import (
 from werkzeug.exceptions import NotFound
 import logging
 import os
+import sqlite3
 import asyncio
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from threading import Thread
+from threading import Thread, Lock
 from typing import Any, Dict
 import maigret
 import maigret.settings
@@ -52,12 +53,69 @@ app.config["REPORTS_FOLDER"] = os.environ.get(
         os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'reports')
     )
 )
+app.config["COUNTERS_DB_FILE"] = os.environ.get(
+    "COUNTERS_DB_FILE",
+    os.path.abspath(
+        os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data', 'counters.db')
+    )
+)
 
 
 def setup_logger(log_level, name):
     logger = logging.getLogger(name)
     logger.setLevel(log_level)
     return logger
+
+
+# ── 使用次數計數器（開頁次數 / 查詢次數），以 SQLite 持久化，容器重啟不歸零 ──
+_counters_lock = Lock()
+
+
+def _get_counters_db():
+    db_path = app.config["COUNTERS_DB_FILE"]
+    os.makedirs(os.path.dirname(db_path), exist_ok=True)
+    conn = sqlite3.connect(db_path)
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS counters (key TEXT PRIMARY KEY, value INTEGER NOT NULL DEFAULT 0)"
+    )
+    return conn
+
+
+def increment_counter(key: str) -> int:
+    with _counters_lock:
+        conn = _get_counters_db()
+        try:
+            conn.execute(
+                "INSERT INTO counters (key, value) VALUES (?, 1) "
+                "ON CONFLICT(key) DO UPDATE SET value = value + 1",
+                (key,),
+            )
+            conn.commit()
+            row = conn.execute(
+                "SELECT value FROM counters WHERE key = ?", (key,)
+            ).fetchone()
+            return row[0] if row else 0
+        finally:
+            conn.close()
+
+
+def get_counters() -> Dict[str, int]:
+    with _counters_lock:
+        conn = _get_counters_db()
+        try:
+            rows = conn.execute("SELECT key, value FROM counters").fetchall()
+            return {key: value for key, value in rows}
+        finally:
+            conn.close()
+
+
+@app.context_processor
+def inject_counters():
+    counters = get_counters()
+    return {
+        'page_view_count': counters.get('page_views', 0),
+        'search_count': counters.get('search_count', 0),
+    }
 
 
 # 統一以臺灣時區顯示時間，避免伺服器所在地時區不同造成誤解
@@ -258,6 +316,7 @@ def process_search_task(usernames, options, timestamp, started_at):
 
 @app.route('/')
 def index():
+    increment_counter('page_views')
     # 自動完成清單也快取，避免每次首頁訪問都重算 3245 站的排序
     site_options = _DB_CACHE.get("site_options")
     if site_options is None:
@@ -284,6 +343,8 @@ def search():
     usernames = [
         u.strip() for u in usernames_input.replace(',', ' ').split() if u.strip()
     ]
+
+    increment_counter('search_count')
 
     # Create timestamp for this search session
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

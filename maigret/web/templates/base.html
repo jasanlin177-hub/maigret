@@ -132,6 +132,27 @@
             border-color: var(--accent);
             color: var(--accent);
         }
+        .usage-counters {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .usage-badge {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+        .usage-badge strong {
+            color: var(--accent);
+            font-family: 'SF Mono', ui-monospace, monospace;
+            font-size: 0.85rem;
+        }
 
         /* ── 主內容 ── */
         .main-content {
@@ -286,6 +307,10 @@
                     </div>
                 </a>
                 <div class="header-actions">
+                    <div class="usage-counters">
+                        <span class="usage-badge" title="累計開啟首頁次數">👁 開頁 <strong>{{ page_view_count }}</strong></span>
+                        <span class="usage-badge" title="累計送出查詢次數">🔍 查詢 <strong>{{ search_count }}</strong></span>
+                    </div>
                     <button class="btn-theme" id="themeToggle">🌙 切換主題</button>
                 </div>
             </div>

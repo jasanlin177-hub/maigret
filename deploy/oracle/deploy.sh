@@ -21,7 +21,7 @@ fi
 
 echo "=== [2/3] 建置並啟動容器 ==="
 cd "$COMPOSE_DIR"
-mkdir -p data/reports caddy_data caddy_config
+mkdir -p data/reports data/db caddy_data caddy_config
 docker compose build
 docker compose up -d
 
