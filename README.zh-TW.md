@@ -1,6 +1,17 @@
 # Maigret 🕵️‍♂️ — 臺灣加強版
 
-> 本分支（[jasanlin177-hub/maigret](https://github.com/jasanlin177-hub/maigret)）以上游 [soxoj/maigret](https://github.com/soxoj/maigret) 為基礎，針對**臺灣使用情境**進行深度強化：全繁體中文網頁介面、89 個臺灣本土站點、格式化 Excel 報告、SHA-256 PoW 繞過，以及 Windows 相容性修正。
+> 本分支（[jasanlin177-hub/maigret](https://github.com/jasanlin177-hub/maigret)）以上游 [soxoj/maigret](https://github.com/soxoj/maigret) 為基礎，針對**臺灣使用情境**進行深度強化：全繁體中文網頁介面、90 個臺灣本土站點、格式化 Excel 報告、SHA-256 PoW 繞過，以及 Windows 相容性修正。
+
+---
+
+## 🌐 線上使用（無需安裝）
+
+| 版本 | 網址 | 說明 |
+|---|---|---|
+| **正式版** | **https://maigret-tw.duckdns.org** | 部署於甲骨文雲端（Oracle Cloud）VPS，HTTPS 加密連線，日常優先使用 |
+| 備用版 | https://maigret-x963.onrender.com | 部署於 Render.com 免費方案，正式版異常時可改用 |
+
+> 正式版偶爾因 VPS 維護短暫離線；若無法連線請改用備用版。備用版為免費方案，記憶體較小，建議以「查前 500 站」或「只查臺灣站」查詢，避免全庫掃描逾時。
 
 ---
 
@@ -8,7 +19,7 @@
 
 | 功能面向 | 上游原版 | 臺灣加強版 |
 |---|---|---|
-| 臺灣站點 | 部分停用 | **89 個臺灣站點（`taiwan` 標籤）** |
+| 臺灣站點 | 部分停用 | **90 個臺灣站點（`taiwan` 標籤）** |
 | 網頁介面語言 | 英文 | **全繁體中文介面** |
 | Excel 報告 | ✗ | ✅ 格式化 `.xlsx`（欄寬、置中、說明工作表） |
 | HTML / CSV 報告欄位 | 英文 | **中英對照雙語** |
@@ -66,7 +77,7 @@ docker run maigret-cli <用戶名稱> --html
 # 查詢單一用戶名稱（預設查流量前 500 名網站）
 maigret <用戶名稱>
 
-# 只查臺灣站點（89 個）
+# 只查臺灣站點（90 個）
 maigret <用戶名稱> --tags taiwan
 
 # 同時查詢多個用戶名稱
@@ -94,7 +105,7 @@ maigret --web 5000
 
 | 按鈕 | 功能 |
 |---|---|
-| 🇹🇼 只查臺灣站 | 自動套用 `--tags taiwan`，掃描 89 個臺灣本土站點 |
+| 🇹🇼 只查臺灣站 | 自動套用 `--tags taiwan`，掃描 90 個臺灣本土站點 |
 | 查前 500 站 | 設定為流量前 500 名（預設值） |
 | 查全部站點 | 啟用全庫掃描（約 3,200+ 站） |
 | ✕ 清除篩選 | 重置所有篩選條件 |
@@ -109,8 +120,11 @@ maigret --web 5000
 
 - 帳號數量統計列（找到 / 完成報告 / 搜尋目標）
 - **狀態說明區塊**（預設展開，說明 Available / Unknown 等狀態意義，避免誤解）
-- 各目標報告可折疊展開，點擊標題列切換
+- 完成時間標示臺灣時區（UTC+8），並顯示本次查詢耗時
+- 各目標報告可折疊展開，點擊標題列切換；每個帳號的 HTML 報告內容各自獨立
+- 列印 / 另存 PDF 時，多帳號報告會自動逐一分頁，每頁附上帳號標頭
 - 帳號關聯圖（Pyvis 互動式圖形）
+- 頁首顯示累計「開頁次數」與「查詢次數」統計徽章
 
 ### 報告下載
 
@@ -143,7 +157,7 @@ maigret --web 5000
 
 ---
 
-## 🇹🇼 臺灣站點支援（89 個）
+## 🇹🇼 臺灣站點支援（90 個）
 
 以 `--tags taiwan` 或網頁 UI「只查臺灣站」按鈕篩選。以下為部分主要站點：
 
@@ -162,6 +176,7 @@ maigret --web 5000
 | 站點 | 說明 |
 |---|---|
 | 露天市集（Ruten） | 臺灣最大網路拍賣平台 |
+| **蝦皮購物（ShopeeTW）** | 透過公開 API 偵測賣場帳號是否存在（不需登入） |
 | KKTIX | 活動售票平台（子域名格式） |
 | Accupass 活動通 | 活動主辦單位頁面 |
 | 嘖嘖（Zeczec） | 臺灣群眾募資平台 |
@@ -212,9 +227,34 @@ maigret --web 5000
 
 部分臺灣站點持有無效憑證，或使用者處於 TLS 攔截的企業 / ISP 環境。本分支在 `CurlCffiChecker` 中加入 `verify: False`，避免憑證問題造成誤報。
 
+### 蝦皮（ShopeeTW）公開 API 偵測
+
+蝦皮為單頁式應用程式（React SPA），傳統「讀取網頁原始碼」方式無法判斷帳號是否存在。本分支改採蝦皮的公開 API 端點（`get_shop_detail`）：帳號存在時回應不含 `invalid_username`，不存在時則含此字串。此驗證發生在伺服器端帳號驗證層，早於 IP 速率限制，故查詢結果穩定可靠，且不需登入。
+
+### 使用次數計數器
+
+以 SQLite 持久化記錄「開頁次數」與「查詢次數」，即使容器重新啟動也不會歸零，統計徽章顯示於頁面頂部導覽列。
+
 ---
 
-## ☁️ 雲端部署（Render.com）
+## ☁️ 雲端部署
+
+本分支支援兩種雲端部署方式：
+
+### 方案一：甲骨文雲端（Oracle Cloud）VPS（建議，正式版採用此方案）
+
+Always Free 方案可取得 ARM 機型（最高 4 OCPU / 24GB）或 AMD 機型（1 OCPU / 1GB）永久免費虛擬機，資源遠優於 Render 免費方案，適合長期穩定對外服務。
+
+本分支 [`deploy/oracle/`](deploy/oracle/README.md) 資料夾提供完整部署腳本：
+
+1. 於甲骨文 Console 建立 VM 執行個體（Ubuntu 22.04）
+2. 執行 `deploy/oracle/setup-vm.sh` 完成系統初始化（Docker、swap、防火牆）
+3. 執行 `deploy/oracle/deploy.sh` 建置並啟動容器
+4. 可選：綁定 [DuckDNS](https://www.duckdns.org) 等免費子網域，`deploy/oracle/Caddyfile` 已內建自動 HTTPS（Let's Encrypt）設定
+
+> **注意：** 甲骨文 ARM 機型（A1.Flex）常因區域容量不足而建立失敗，屬平台已知限制。`deploy/oracle/retry-launch/` 提供自動重試腳本，或改用較容易建立成功的 AMD 機型（E2.1.Micro，1GB 記憶體，適合輕量查詢）。
+
+### 方案二：Render.com（免費，適合備援或臨時測試）
 
 本分支附有 `render.yaml`，可直接部署至 Render.com 免費方案：
 
@@ -223,7 +263,7 @@ maigret --web 5000
 3. Render 會自動讀取 `render.yaml`，使用 Docker 建置 `web` stage
 4. 部署完成後即可透過 Render 提供的網址使用網頁 UI
 
-> **注意：** Render 免費方案記憶體上限 512MB，建議查詢時限制站點數量（使用「查前 500 站」或「只查臺灣站」），避免全庫掃描導致 OOM。
+> **注意：** Render 免費方案記憶體上限 512MB，且閒置一段時間會自動休眠（首次喚醒需等待數十秒），建議查詢時限制站點數量（使用「查前 500 站」或「只查臺灣站」），避免全庫掃描導致 OOM。
 
 ---
 

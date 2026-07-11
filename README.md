@@ -4,7 +4,18 @@
 
 Maigret collects a dossier on a person by username only, checking for accounts on a huge number of sites and gathering all available information from web pages. No API keys required.
 
-This fork ([jasanlin177-hub/maigret](https://github.com/jasanlin177-hub/maigret)) builds on the upstream [soxoj/maigret](https://github.com/soxoj/maigret) with deep enhancements for Taiwan users: a fully Traditional Chinese web interface, 89 Taiwan-local sites, formatted Excel reports, SHA-256 PoW bypass, and Windows compatibility fixes.
+This fork ([jasanlin177-hub/maigret](https://github.com/jasanlin177-hub/maigret)) builds on the upstream [soxoj/maigret](https://github.com/soxoj/maigret) with deep enhancements for Taiwan users: a fully Traditional Chinese web interface, 90 Taiwan-local sites, formatted Excel reports, SHA-256 PoW bypass, and Windows compatibility fixes.
+
+---
+
+## 🌐 Live Instances (No Install Needed)
+
+| Instance | URL | Notes |
+|---|---|---|
+| **Primary** | **https://maigret-tw.duckdns.org** | Hosted on Oracle Cloud VPS, HTTPS-secured — use this by default |
+| Backup | https://maigret-x963.onrender.com | Hosted on Render.com free tier — use if the primary is down |
+
+> The primary instance may go briefly offline for VPS maintenance; switch to the backup if unreachable. The backup runs on a memory-limited free tier — prefer "Top 500" or "Taiwan Only" scans there to avoid timeouts on full-database scans.
 
 ---
 
@@ -12,7 +23,7 @@ This fork ([jasanlin177-hub/maigret](https://github.com/jasanlin177-hub/maigret)
 
 | Feature | Upstream | Taiwan Fork |
 |---|---|---|
-| Taiwan sites | Partially disabled | 89 Taiwan sites (`taiwan` tag) |
+| Taiwan sites | Partially disabled | 90 Taiwan sites (`taiwan` tag) |
 | Web UI language | English | Full Traditional Chinese UI |
 | Excel report | ✗ | ✅ Formatted .xlsx (column width, alignment, info sheet) |
 | HTML / CSV column headers | English | Bilingual (EN + ZH) |
@@ -70,7 +81,7 @@ docker run maigret-cli <username> --html
 # Search a single username (default: top 500 sites by traffic)
 maigret <username>
 
-# Taiwan sites only (89 sites)
+# Taiwan sites only (90 sites)
 maigret <username> --tags taiwan
 
 # Multiple usernames
@@ -104,7 +115,7 @@ maigret --web 5000
 
 | Button | Function |
 |---|---|
-| 🇹🇼 Taiwan Only | Applies `--tags taiwan` automatically — scans 89 Taiwan-local sites |
+| 🇹🇼 Taiwan Only | Applies `--tags taiwan` automatically — scans 90 Taiwan-local sites |
 | Top 500 | Set to top 500 sites by traffic (default) |
 | All Sites | Enable full-database scan (~3,200+ sites) |
 | ✕ Clear Filters | Reset all filters |
@@ -119,8 +130,11 @@ maigret --web 5000
 
 - Account count bar (Found / Report Done / Search Target)
 - Status explanation block (expanded by default — clarifies Available / Unknown meanings)
-- Per-target report sections are collapsible — click header to toggle
+- Completion time shown in Taiwan timezone (UTC+8), plus total search duration
+- Per-target report sections are collapsible — click header to toggle; each account's HTML report is fully independent
+- Printing / saving as PDF auto-paginates multi-account reports, one page per account with its own heading
 - Account relationship graph (Pyvis interactive)
+- Header shows cumulative "page views" and "searches run" usage badges
 
 ### Report Downloads
 
@@ -151,7 +165,7 @@ An additional **Status Legend** sheet lists the meaning of each status code to p
 
 ---
 
-## 🇹🇼 Taiwan Site Support (89 sites)
+## 🇹🇼 Taiwan Site Support (90 sites)
 
 Filter with `--tags taiwan` or the "Taiwan Only" button in the Web UI.
 
@@ -170,6 +184,7 @@ Filter with `--tags taiwan` or the "Taiwan Only" button in the Web UI.
 | Site | Description |
 |---|---|
 | Ruten (露天市集) | Taiwan's largest online auction platform |
+| **Shopee (ShopeeTW)** | Shop account detection via public API (no login required) |
 | KKTIX | Event ticketing (subdomain format) |
 | Accupass (活動通) | Event organizer pages |
 | Zeczec (嘖嘖) | Taiwan crowdfunding platform |
@@ -220,9 +235,34 @@ Add "protection": ["pow_sha256"] to a site entry in data.json to enable it (requ
 
 Some Taiwan sites hold invalid certificates, or users operate in TLS-intercepting corporate / ISP environments. This fork adds verify: False to CurlCffiChecker to prevent certificate errors from producing false negatives.
 
+### Shopee (ShopeeTW) Public API Detection
+
+Shopee is a single-page application (SPA); reading raw page source cannot determine whether an account exists. This fork instead queries Shopee's public `get_shop_detail` API endpoint: an existing account's response omits `invalid_username`, while a non-existent one includes it. This check happens at the server-side account-validation layer, ahead of any IP rate limiting, so results are reliable and require no login.
+
+### Usage Counters
+
+Page-view and search counts are persisted via SQLite, surviving container restarts. Badges are shown in the top navigation bar.
+
 ---
 
-## ☁️ Cloud Deployment (Render.com)
+## ☁️ Cloud Deployment
+
+This fork supports two deployment options:
+
+### Option 1: Oracle Cloud VPS (recommended — used for the primary instance)
+
+Oracle Cloud's Always Free tier offers either an ARM shape (up to 4 OCPU / 24GB) or an AMD shape (1 OCPU / 1GB) as a permanently free VM — far more capable than Render's free tier, suitable for stable long-term hosting.
+
+Full deployment scripts are provided in [`deploy/oracle/`](deploy/oracle/README.md):
+
+1. Create a VM instance (Ubuntu 22.04) in the Oracle Cloud Console
+2. Run `deploy/oracle/setup-vm.sh` for system setup (Docker, swap, firewall)
+3. Run `deploy/oracle/deploy.sh` to build and start the containers
+4. Optional: point a free subdomain (e.g. [DuckDNS](https://www.duckdns.org)) at the VM — `deploy/oracle/Caddyfile` already includes automatic HTTPS (Let's Encrypt)
+
+> **Note:** Oracle's ARM shape (A1.Flex) frequently fails to launch due to regional capacity shortages — a known platform limitation. `deploy/oracle/retry-launch/` provides an auto-retry script, or use the more readily-available AMD shape (E2.1.Micro, 1GB RAM, suitable for lightweight queries) instead.
+
+### Option 2: Render.com (free — good for backup or quick testing)
 
 This fork ships with render.yaml for one-click deployment to Render.com free tier:
 
@@ -231,7 +271,7 @@ This fork ships with render.yaml for one-click deployment to Render.com free tie
 3. Render automatically reads render.yaml and builds the web Docker stage
 4. After deployment, access the Web UI via the URL Render provides
 
-> **Note:** Render's free plan has a 512 MB memory limit. To avoid OOM errors during full-database scans, use "Top 500" or "Taiwan Only" mode instead of scanning all sites.
+> **Note:** Render's free plan has a 512 MB memory limit and spins down after a period of inactivity (first request after waking takes tens of seconds). To avoid OOM errors during full-database scans, use "Top 500" or "Taiwan Only" mode instead of scanning all sites.
 
 ---
 
@@ -268,7 +308,18 @@ Released under the MIT License.
 
 Maigret 僅憑用戶名稱即可蒐集個人資料，透過檢查大量網站的帳號並從網頁擷取所有可用資訊。無需 API 金鑰。
 
-本分支（[jasanlin177-hub/maigret](https://github.com/jasanlin177-hub/maigret)）以上游 [soxoj/maigret](https://github.com/soxoj/maigret) 為基礎，針對臺灣使用情境進行深度強化：全繁體中文網頁介面、89 個臺灣本土站點、格式化 Excel 報告、SHA-256 PoW 繞過，以及 Windows 相容性修正。
+本分支（[jasanlin177-hub/maigret](https://github.com/jasanlin177-hub/maigret)）以上游 [soxoj/maigret](https://github.com/soxoj/maigret) 為基礎，針對臺灣使用情境進行深度強化：全繁體中文網頁介面、90 個臺灣本土站點、格式化 Excel 報告、SHA-256 PoW 繞過，以及 Windows 相容性修正。
+
+---
+
+## 🌐 線上使用（無需安裝）
+
+| 版本 | 網址 | 說明 |
+|---|---|---|
+| **正式版** | **https://maigret-tw.duckdns.org** | 部署於甲骨文雲端（Oracle Cloud）VPS，HTTPS 加密連線，日常優先使用 |
+| 備用版 | https://maigret-x963.onrender.com | 部署於 Render.com 免費方案，正式版異常時可改用 |
+
+> 正式版偶爾因 VPS 維護短暫離線；若無法連線請改用備用版。備用版為免費方案，記憶體較小，建議以「查前 500 站」或「只查臺灣站」查詢，避免全庫掃描逾時。
 
 ---
 
@@ -276,7 +327,7 @@ Maigret 僅憑用戶名稱即可蒐集個人資料，透過檢查大量網站的
 
 | 功能面向 | 上游原版 | 臺灣加強版 |
 |---|---|---|
-| 臺灣站點 | 部分停用 | 89 個臺灣站點（taiwan 標籤） |
+| 臺灣站點 | 部分停用 | 90 個臺灣站點（taiwan 標籤） |
 | 網頁介面語言 | 英文 | 全繁體中文介面 |
 | Excel 報告 | ✗ | ✅ 格式化 .xlsx（欄寬、置中、說明工作表） |
 | HTML / CSV 報告欄位 | 英文 | 中英對照雙語 |
@@ -334,7 +385,7 @@ docker run maigret-cli <用戶名稱> --html
 # 查詢單一用戶名稱（預設查流量前 500 名網站）
 maigret <用戶名稱>
 
-# 只查臺灣站點（89 個）
+# 只查臺灣站點（90 個）
 maigret <用戶名稱> --tags taiwan
 
 # 同時查詢多個用戶名稱
@@ -368,7 +419,7 @@ maigret --web 5000
 
 | 按鈕 | 功能 |
 |---|---|
-| 🇹🇼 只查臺灣站 | 自動套用 --tags taiwan，掃描 89 個臺灣本土站點 |
+| 🇹🇼 只查臺灣站 | 自動套用 --tags taiwan，掃描 90 個臺灣本土站點 |
 | 查前 500 站 | 設定為流量前 500 名（預設值） |
 | 查全部站點 | 啟用全庫掃描（約 3,200+ 站） |
 | ✕ 清除篩選 | 重置所有篩選條件 |
@@ -383,8 +434,11 @@ maigret --web 5000
 
 - 帳號數量統計列（找到 / 完成報告 / 搜尋目標）
 - 狀態說明區塊（預設展開，說明 Available / Unknown 等狀態意義，避免誤解）
-- 各目標報告可折疊展開，點擊標題列切換
+- 完成時間標示臺灣時區（UTC+8），並顯示本次查詢耗時
+- 各目標報告可折疊展開，點擊標題列切換；每個帳號的 HTML 報告內容各自獨立
+- 列印 / 另存 PDF 時，多帳號報告會自動逐一分頁，每頁附上帳號標頭
 - 帳號關聯圖（Pyvis 互動式圖形）
+- 頁首顯示累計「開頁次數」與「查詢次數」統計徽章
 
 ### 報告下載
 
@@ -415,7 +469,7 @@ maigret --web 5000
 
 ---
 
-## 🇹🇼 臺灣站點支援（89 個）
+## 🇹🇼 臺灣站點支援（90 個）
 
 以 --tags taiwan 或網頁 UI「只查臺灣站」按鈕篩選。
 
@@ -434,6 +488,7 @@ maigret --web 5000
 | 站點 | 說明 |
 |---|---|
 | 露天市集（Ruten） | 臺灣最大網路拍賣平台 |
+| **蝦皮購物（ShopeeTW）** | 透過公開 API 偵測賣場帳號是否存在（不需登入） |
 | KKTIX | 活動售票平台（子域名格式） |
 | Accupass 活動通 | 活動主辦單位頁面 |
 | 嘖嘖（Zeczec） | 臺灣群眾募資平台 |
@@ -484,9 +539,34 @@ maigret --web 5000
 
 部分臺灣站點持有無效憑證，或使用者處於 TLS 攔截的企業 / ISP 環境。本分支在 CurlCffiChecker 中加入 verify: False，避免憑證問題造成誤報。
 
+### 蝦皮（ShopeeTW）公開 API 偵測
+
+蝦皮為單頁式應用程式（React SPA），傳統「讀取網頁原始碼」方式無法判斷帳號是否存在。本分支改採蝦皮的公開 API 端點（get_shop_detail）：帳號存在時回應不含 invalid_username，不存在時則含此字串。此驗證發生在伺服器端帳號驗證層，早於 IP 速率限制，故查詢結果穩定可靠，且不需登入。
+
+### 使用次數計數器
+
+以 SQLite 持久化記錄「開頁次數」與「查詢次數」，即使容器重新啟動也不會歸零，統計徽章顯示於頁面頂部導覽列。
+
 ---
 
-## ☁️ 雲端部署（Render.com）
+## ☁️ 雲端部署
+
+本分支支援兩種雲端部署方式：
+
+### 方案一：甲骨文雲端（Oracle Cloud）VPS（建議，正式版採用此方案）
+
+Always Free 方案可取得 ARM 機型（最高 4 OCPU / 24GB）或 AMD 機型（1 OCPU / 1GB）永久免費虛擬機，資源遠優於 Render 免費方案，適合長期穩定對外服務。
+
+本分支 [`deploy/oracle/`](deploy/oracle/README.md) 資料夾提供完整部署腳本：
+
+1. 於甲骨文 Console 建立 VM 執行個體（Ubuntu 22.04）
+2. 執行 `deploy/oracle/setup-vm.sh` 完成系統初始化（Docker、swap、防火牆）
+3. 執行 `deploy/oracle/deploy.sh` 建置並啟動容器
+4. 可選：綁定 DuckDNS 等免費子網域，`deploy/oracle/Caddyfile` 已內建自動 HTTPS（Let's Encrypt）設定
+
+> 注意：甲骨文 ARM 機型（A1.Flex）常因區域容量不足而建立失敗，屬平台已知限制。`deploy/oracle/retry-launch/` 提供自動重試腳本，或改用較容易建立成功的 AMD 機型（E2.1.Micro，1GB 記憶體，適合輕量查詢）。
+
+### 方案二：Render.com（免費，適合備援或臨時測試）
 
 本分支附有 render.yaml，可直接部署至 Render.com 免費方案：
 
@@ -495,7 +575,7 @@ maigret --web 5000
 3. Render 會自動讀取 render.yaml，使用 Docker 建置 web stage
 4. 部署完成後即可透過 Render 提供的網址使用網頁 UI
 
-> 注意： Render 免費方案記憶體上限 512 MB，建議查詢時限制站點數量（使用「查前 500 站」或「只查臺灣站」），避免全庫掃描導致 OOM。
+> 注意： Render 免費方案記憶體上限 512 MB，且閒置一段時間會自動休眠（首次喚醒需等待數十秒），建議查詢時限制站點數量（使用「查前 500 站」或「只查臺灣站」），避免全庫掃描導致 OOM。
 
 ---
 
