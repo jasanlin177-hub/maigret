@@ -193,7 +193,7 @@ def process_search_task(usernames, options, timestamp, started_at):
             json_path = f"{report_base}.json"
             html_path = f"{report_base}.html"
 
-            context = generate_report_context(general_results)
+            context = generate_report_context([(username, id_type, results)])
 
             maigret.report.save_csv_report(csv_path, username, results)
             try:
