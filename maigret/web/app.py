@@ -14,6 +14,7 @@ import logging
 import os
 import asyncio
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from threading import Thread
 from typing import Any, Dict
 import maigret
@@ -57,6 +58,22 @@ def setup_logger(log_level, name):
     logger = logging.getLogger(name)
     logger.setLevel(log_level)
     return logger
+
+
+# 統一以臺灣時區顯示時間，避免伺服器所在地時區不同造成誤解
+TAIPEI_TZ = ZoneInfo("Asia/Taipei")
+
+
+def format_duration(seconds: float) -> str:
+    """將秒數轉為中文可讀的耗時字串，例如「3 分 42 秒」。"""
+    total_seconds = int(seconds)
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, secs = divmod(remainder, 60)
+    if hours:
+        return f"{hours} 小時 {minutes} 分 {secs} 秒"
+    if minutes:
+        return f"{minutes} 分 {secs} 秒"
+    return f"{secs} 秒"
 
 
 async def maigret_search(username, options):
@@ -144,7 +161,7 @@ def sanitize_username_for_path(username: str) -> str:
     return sanitized or '_'
 
 
-def process_search_task(usernames, options, timestamp):
+def process_search_task(usernames, options, timestamp, started_at):
     try:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -221,12 +238,15 @@ def process_search_task(usernames, options, timestamp):
             )
 
         # save results and mark job as complete using timestamp as key
+        completed_at = datetime.now(TAIPEI_TZ)
         job_results[timestamp] = {
             'status': 'completed',
             'session_folder': f"search_{timestamp}",
             'graph_file': f"search_{timestamp}/combined_graph.html",
             'usernames': usernames,
             'individual_reports': individual_reports,
+            'completed_at_str': completed_at.strftime("%Y-%m-%d %H:%M:%S") + " (UTC+8 臺灣時間)",
+            'duration_str': format_duration((completed_at - started_at).total_seconds()),
         }
 
     except Exception as e:
@@ -298,10 +318,12 @@ def search():
     )
 
     # Start background job
+    started_at = datetime.now(TAIPEI_TZ)
     background_jobs[timestamp] = {
         'completed': False,
         'thread': Thread(
-            target=process_search_task, args=(usernames, options, timestamp)
+            target=process_search_task,
+            args=(usernames, options, timestamp, started_at),
         ),
     }
     background_jobs[timestamp]['thread'].start()  # type: ignore[union-attr]
@@ -367,6 +389,8 @@ def results(session_id):
         graph_file=result_data['graph_file'],
         individual_reports=result_data['individual_reports'],
         timestamp=session_id.replace('search_', ''),
+        completed_at_str=result_data.get('completed_at_str', ''),
+        duration_str=result_data.get('duration_str', ''),
     )
 
 

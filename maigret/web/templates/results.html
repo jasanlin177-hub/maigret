@@ -268,6 +268,36 @@
     .lg-no      { background: rgba(148,163,184,0.12); color: #94a3b8; border: 1px solid rgba(148,163,184,0.25); }
     .lg-unknown { background: rgba(245,158,11,0.12);  color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
     .lg-illegal { background: rgba(248,113,113,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
+
+    /* ── 列印 / 另存 PDF：每個帳號各自獨立分頁，全部強制展開 ── */
+    .print-account-heading { display: none; }
+    @media print {
+        .btn-back, .download-row, .chevron-icon,
+        .status-legend, .graph-section { display: none !important; }
+
+        /* 強制展開所有帳號卡片內容，不受畫面上收合狀態影響 */
+        .report-card-body { display: block !important; }
+        .report-card-header { cursor: default; }
+
+        /* 每個帳號從新的一頁開始，並顯示明確的帳號標頭 */
+        .report-card {
+            break-before: page;
+            page-break-before: always;
+            border: none;
+        }
+        .report-card:first-of-type {
+            break-before: auto;
+            page-break-before: avoid;
+        }
+        .print-account-heading {
+            display: block;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #1e293b;
+        }
+    }
 </style>
 
 <!-- 返回按鈕 -->
@@ -281,7 +311,8 @@
         {% for u in usernames %}
             <strong>{{ u }}</strong>{% if not loop.last %}、{% endif %}
         {% endfor %}
-        &nbsp;·&nbsp; 完成時間：{{ timestamp | replace('_', ' ') }}
+        &nbsp;·&nbsp; 完成時間：{{ completed_at_str or (timestamp | replace('_', ' ')) }}
+        {% if duration_str %}&nbsp;·&nbsp; 耗時：{{ duration_str }}{% endif %}
     </div>
 </div>
 
@@ -339,6 +370,10 @@
 <div class="card-tw-title">各目標報告</div>
 {% for report in individual_reports %}
 <div class="report-card">
+    <!-- 列印專用標頭：每個帳號列印時各自成頁，畫面上不顯示 -->
+    <div class="print-account-heading">
+        第 {{ loop.index }} / {{ individual_reports | length }} 位目標　{{ report.username }}
+    </div>
     <!-- 標題列 -->
     <div class="report-card-header" onclick="toggleReport('rpt-{{ loop.index }}', this)">
         <div class="report-username">
