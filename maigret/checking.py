@@ -54,6 +54,8 @@ def _is_dns_error(exc: Exception) -> bool:
 from python_socks import _errors as proxy_errors
 from socid_extractor import extract  # type: ignore[import-not-found]
 
+from maigret.opengraph import merge_opengraph_fallback
+
 try:
     from mock import Mock
 except ImportError:
@@ -911,6 +913,10 @@ def process_site_result(
 
     if is_parsing_enabled and result.status == MaigretCheckStatus.CLAIMED:
         extracted_ids_data = extract_ids_data(html_text, logger, site)
+        # 站點若無專屬解析規則（socid_extractor 對應規則），
+        # 通用補上 OpenGraph / meta 標籤資訊（頭像、全名、簡介），
+        # 僅填補缺少的欄位，不覆蓋既有擷取結果
+        extracted_ids_data = merge_opengraph_fallback(extracted_ids_data, html_text)
         if extracted_ids_data:
             new_usernames = parse_usernames(extracted_ids_data, logger)
             results_info = update_results_info(
