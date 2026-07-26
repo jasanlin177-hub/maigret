@@ -21,7 +21,7 @@ import asyncio
 import io
 import logging
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import aiohttp
 from aiohttp import TCPConnector
@@ -119,6 +119,34 @@ class AvatarCluster:
     representative_hash: Optional[int] = None
 
 
+@dataclass
+class CorrelationStats:
+    """
+    關聯分析的執行統計。
+
+    區分「已成功比對」與「無法取得」至關重要：若頭像下載失敗卻只回報
+    「未發現相似群組」，使用者會誤以為系統已查證過各帳號頭像不同，
+    實際上是根本沒取得圖片。對偵查判斷而言，這種假陰性有害。
+    """
+
+    total_urls: int = 0            # 收集到的頭像網址總數
+    compared: int = 0              # 實際成功下載並完成比對的數量
+    download_failed: int = 0       # 下載失敗（HTTP 錯誤、逾時、連線失敗）
+    unreadable: int = 0            # 下載成功但圖片無法解析
+    skipped_default: int = 0       # 判定為平台預設圖／logo 而排除
+    skipped_no_feature: int = 0    # 圖片無足夠特徵（純色、空白佔位圖）
+
+    @property
+    def unavailable(self) -> int:
+        """完全無法納入比對的數量（下載失敗 + 無法解析）。"""
+        return self.download_failed + self.unreadable
+
+    @property
+    def excluded(self) -> int:
+        """取得成功但刻意排除的數量（預設圖 + 無特徵圖）。"""
+        return self.skipped_default + self.skipped_no_feature
+
+
 def compute_dhash(image_bytes: bytes, hash_size: int = 8) -> Optional[int]:
     """
     計算圖片的 dHash（差異雜湊）。
@@ -181,15 +209,22 @@ async def _fetch_and_hash(
     image_url: str,
     semaphore: asyncio.Semaphore,
     logger: logging.Logger,
-) -> Optional[int]:
-    """下載單張頭像並計算 dHash，任何失敗都回傳 None（不中斷整體流程）。"""
+) -> Tuple[Optional[int], str]:
+    """
+    下載單張頭像並計算 dHash。
+
+    Returns:
+        (雜湊值, 結果代碼) 二元組。結果代碼為 "ok" / "download_failed" /
+        "unreadable" / "skipped_default"，供上層統計實際比對狀況，
+        避免把「抓不到圖」誤報成「頭像不相似」。
+    """
     if not image_url or not image_url.startswith(("http://", "https://")):
-        return None
+        return None, "download_failed"
 
     # 由網址即可判定的平台預設圖／logo，在下載前就跳過
     if is_default_avatar_url(image_url):
         logger.debug(f"略過疑似平台預設頭像（{site_name}）：{image_url}")
-        return None
+        return None, "skipped_default"
 
     async with semaphore:
         try:
@@ -199,10 +234,13 @@ async def _fetch_and_hash(
                 ssl=False,
             ) as resp:
                 if resp.status != 200:
-                    return None
+                    logger.debug(
+                        f"頭像下載失敗（{site_name}）：HTTP {resp.status}"
+                    )
+                    return None, "download_failed"
                 content_length = resp.content_length
                 if content_length and content_length > MAX_IMAGE_BYTES:
-                    return None
+                    return None, "download_failed"
 
                 # 注意：resp.content.read(n) 遇到分段傳輸（chunked transfer）時
                 # 可能提早返回、讀不滿完整內容，導致 PIL 解析時出現
@@ -212,19 +250,23 @@ async def _fetch_and_hash(
                 async for chunk in resp.content.iter_chunked(65536):
                     chunks.extend(chunk)
                     if len(chunks) > MAX_IMAGE_BYTES:
-                        return None
+                        return None, "download_failed"
                 data = bytes(chunks)
         except Exception as e:
-            logger.debug(f"頭像下載失敗（{site_name}）：{e}")
-            return None
+            logger.debug(f"頭像下載失敗（{site_name}）：{type(e).__name__}: {e}")
+            return None, "download_failed"
 
-    return compute_dhash(data)
+    h = compute_dhash(data)
+    if h is None:
+        logger.debug(f"頭像無法解析（{site_name}）：圖片格式錯誤或檔案毀損")
+        return None, "unreadable"
+    return h, "ok"
 
 
 async def compute_avatar_hashes(
     site_avatars: Dict[str, str],
     logger: Optional[logging.Logger] = None,
-) -> Dict[str, int]:
+) -> Tuple[Dict[str, int], CorrelationStats]:
     """
     平行下載多個站點的頭像並計算 dHash。
 
@@ -233,15 +275,19 @@ async def compute_avatar_hashes(
         logger: 選用的 logger，預設使用模組層級 logger。
 
     Returns:
-        {站點名稱: dHash 值} 對照表，僅包含成功計算雜湊的項目。
+        ({站點名稱: dHash 值}, 執行統計) 二元組。
+        雜湊表僅含成功項目；統計則完整記錄失敗與排除的數量，
+        供介面誠實呈現「實際比對了幾個」而非「收集了幾個網址」。
     """
+    logger = logger or logging.getLogger(__name__)
+    stats = CorrelationStats(total_urls=len([u for u in site_avatars.values() if u]))
+
     if Image is None:
-        (logger or logging.getLogger(__name__)).warning(
+        logger.warning(
             "Pillow 未安裝，略過頭像關聯聚類（pip install Pillow 以啟用此功能）"
         )
-        return {}
+        return {}, stats
 
-    logger = logger or logging.getLogger(__name__)
     semaphore = asyncio.Semaphore(MAX_CONCURRENT_FETCHES)
 
     # Windows 上預設的 aiodns/c-ares 解析器常出現 DNS 查詢失敗，
@@ -255,11 +301,25 @@ async def compute_avatar_hashes(
         }
         results = await asyncio.gather(*tasks.values())
 
-    return {
-        site_name: h
-        for site_name, h in zip(tasks.keys(), results)
-        if h is not None
-    }
+    hashes: Dict[str, int] = {}
+    for site_name, (h, reason) in zip(tasks.keys(), results):
+        if reason == "ok" and h is not None:
+            hashes[site_name] = h
+        elif reason == "download_failed":
+            stats.download_failed += 1
+        elif reason == "unreadable":
+            stats.unreadable += 1
+        elif reason == "skipped_default":
+            stats.skipped_default += 1
+
+    if stats.unavailable:
+        logger.info(
+            f"頭像關聯分析：{stats.total_urls} 個頭像網址中，"
+            f"{stats.unavailable} 個無法取得"
+            f"（下載失敗 {stats.download_failed}、無法解析 {stats.unreadable}）"
+        )
+
+    return hashes, stats
 
 
 def _is_degenerate_hash(h: int) -> bool:
@@ -276,6 +336,7 @@ def filter_default_avatars(
     hashes: Dict[str, int],
     max_shared_sites: int = DEFAULT_MAX_SHARED_SITES,
     logger: Optional[logging.Logger] = None,
+    stats: Optional[CorrelationStats] = None,
 ) -> Dict[str, int]:
     """
     排除平台預設頭像與無特徵圖片，避免誤判不相干帳號為「同一人」。
@@ -302,12 +363,16 @@ def filter_default_avatars(
     for site_name, h in hashes.items():
         if _is_degenerate_hash(h):
             logger.debug(f"排除無特徵頭像（{site_name}）：雜湊值資訊量不足")
+            if stats is not None:
+                stats.skipped_no_feature += 1
             continue
         if hash_counts[h] > max_shared_sites:
             logger.debug(
                 f"排除疑似平台預設頭像（{site_name}）："
                 f"同一張圖出現在 {hash_counts[h]} 個站點"
             )
+            if stats is not None:
+                stats.skipped_default += 1
             continue
         filtered[site_name] = h
 
@@ -364,9 +429,9 @@ async def correlate_avatars(
     threshold: int = DEFAULT_HAMMING_THRESHOLD,
     max_shared_sites: int = DEFAULT_MAX_SHARED_SITES,
     logger: Optional[logging.Logger] = None,
-) -> List[AvatarCluster]:
+) -> Tuple[List[AvatarCluster], CorrelationStats]:
     """
-    對外主要入口：輸入各站點的頭像網址，回傳視覺相似的頭像群組。
+    對外主要入口：輸入各站點的頭像網址，回傳視覺相似的頭像群組與執行統計。
 
     流程：下載頭像 → 計算 dHash → 排除平台預設圖 → 依相似度分群。
 
@@ -378,8 +443,10 @@ async def correlate_avatars(
         logger: 選用的 logger。
 
     Returns:
-        群組清單，每組代表一批頭像視覺高度相似、可能屬於同一人的站點。
+        (群組清單, 執行統計) 二元組。呼叫端務必一併呈現統計數據，
+        讓使用者能區分「已比對後確認不相似」與「頭像根本沒取得」。
     """
-    hashes = await compute_avatar_hashes(site_avatars, logger)
-    hashes = filter_default_avatars(hashes, max_shared_sites, logger)
-    return cluster_by_hash(hashes, threshold)
+    hashes, stats = await compute_avatar_hashes(site_avatars, logger)
+    hashes = filter_default_avatars(hashes, max_shared_sites, logger, stats)
+    stats.compared = len(hashes)
+    return cluster_by_hash(hashes, threshold), stats

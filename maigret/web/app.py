@@ -297,9 +297,11 @@ def process_search_task(usernames, options, timestamp, started_at):
             # 頭像關聯分析（選用）：比對各站頭像視覺相似度，
             # 找出可能屬於同一人的帳號群組。失敗不影響主要查詢結果。
             avatar_clusters = []
+            avatar_stats = None
+            correlation_error = None
             if options.get('correlate_avatars') and site_avatars:
                 try:
-                    clusters = loop.run_until_complete(
+                    clusters, stats = loop.run_until_complete(
                         correlate_avatars(site_avatars, logger=logging.getLogger('maigret'))
                     )
                     avatar_clusters = [
@@ -309,7 +311,18 @@ def process_search_task(usernames, options, timestamp, started_at):
                         }
                         for c in clusters
                     ]
+                    # 完整保留統計數據，讓介面能誠實區分
+                    # 「已比對後無相似」與「頭像無法取得」
+                    avatar_stats = {
+                        'total_urls': stats.total_urls,
+                        'compared': stats.compared,
+                        'unavailable': stats.unavailable,
+                        'download_failed': stats.download_failed,
+                        'unreadable': stats.unreadable,
+                        'excluded': stats.excluded,
+                    }
                 except Exception as e:
+                    correlation_error = str(e)
                     logging.warning(f"頭像關聯分析失敗（不影響查詢結果）：{e}")
 
             individual_reports.append(
@@ -321,7 +334,8 @@ def process_search_task(usernames, options, timestamp, started_at):
                     'html_file': f"search_{timestamp}/report_{safe_username}.html",
                     'claimed_profiles': claimed_profiles,
                     'avatar_clusters': avatar_clusters,
-                    'avatar_count': len(site_avatars),
+                    'avatar_stats': avatar_stats,
+                    'correlation_error': correlation_error,
                 }
             )
 

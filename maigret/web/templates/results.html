@@ -152,6 +152,34 @@
         line-height: 1.55;
         margin: 0 0 0.85rem;
     }
+    .corr-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 0.8rem;
+    }
+    .corr-stats span {
+        font-size: 0.74rem;
+        padding: 2px 9px;
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        white-space: nowrap;
+    }
+    .corr-stat-ok {
+        background: rgba(16,185,129,0.1);
+        border-color: rgba(16,185,129,0.25) !important;
+        color: var(--success, #10b981);
+    }
+    .corr-stat-warn {
+        background: rgba(245,158,11,0.1);
+        border-color: rgba(245,158,11,0.3) !important;
+        color: var(--warning, #f59e0b);
+        font-weight: 500;
+    }
+    .corr-stat-muted {
+        background: var(--bg-card);
+        color: var(--text-muted);
+    }
     .correlation-note strong { color: var(--warning, #f59e0b); }
     .cluster-item {
         border-left: 3px solid var(--accent);
@@ -451,9 +479,35 @@
         </div>
 
         <!-- 頭像關聯分析結果 -->
-        {% if report.avatar_clusters %}
+        {% if report.correlation_error %}
         <div class="correlation-block">
-            <div class="profiles-title">🔗 頭像關聯分析（{{ report.avatar_clusters | length }} 組）</div>
+            <div class="profiles-title">🔗 頭像關聯分析</div>
+            <p class="correlation-note">
+                <strong>分析未能執行</strong>，本次結果不包含頭像關聯資訊。
+                錯誤訊息：{{ report.correlation_error }}
+            </p>
+        </div>
+        {% elif report.avatar_stats %}
+        {% set st = report.avatar_stats %}
+        <div class="correlation-block">
+            <div class="profiles-title">
+                🔗 頭像關聯分析{% if report.avatar_clusters %}（{{ report.avatar_clusters | length }} 組）{% endif %}
+            </div>
+
+            <!-- 執行統計：明確區分「已比對」與「無法取得」，
+                 避免把抓不到圖誤讀成頭像不相似 -->
+            <div class="corr-stats">
+                <span class="corr-stat-ok">實際比對 {{ st.compared }} 個</span>
+                {% if st.unavailable %}
+                <span class="corr-stat-warn">無法取得 {{ st.unavailable }} 個</span>
+                {% endif %}
+                {% if st.excluded %}
+                <span class="corr-stat-muted">排除預設圖 {{ st.excluded }} 個</span>
+                {% endif %}
+                <span class="corr-stat-muted">共收集 {{ st.total_urls }} 個頭像網址</span>
+            </div>
+
+            {% if report.avatar_clusters %}
             <p class="correlation-note">
                 以下各組帳號的頭像視覺高度相似，<strong>可能</strong>屬於同一人。
                 本結果僅為輔助線索，不足以單獨作為同一人之認定依據，請務必人工核實。
@@ -468,15 +522,26 @@
                 </div>
             </div>
             {% endfor %}
-        </div>
-        {% elif report.avatar_count is defined and report.avatar_count > 0 %}
-        <div class="correlation-block">
-            <div class="profiles-title">🔗 頭像關聯分析</div>
+
+            {% elif st.compared >= 2 %}
             <p class="correlation-note">
-                已比對 {{ report.avatar_count }} 個帳號的頭像，<strong>未發現</strong>視覺相似的群組。
-                這代表各帳號使用不同頭像，無法藉頭像判斷關聯性
-                （不代表這些帳號一定不屬於同一人）。
+                已成功比對的 {{ st.compared }} 個頭像中，<strong>未發現</strong>視覺相似的群組。
+                {% if st.unavailable %}
+                但另有 <strong>{{ st.unavailable }} 個頭像無法取得</strong>（連結失效、平台阻擋或逾時），
+                這些帳號<strong>並未納入比對</strong>，其關聯性仍屬未知。
+                {% endif %}
             </p>
+
+            {% else %}
+            <p class="correlation-note">
+                <strong>可比對的頭像不足</strong>（僅 {{ st.compared }} 個成功取得，至少需 2 個才能比對），
+                本次無法進行關聯分析。
+                {% if st.unavailable %}
+                共有 {{ st.unavailable }} 個頭像無法取得（連結失效、平台阻擋或逾時）。
+                {% endif %}
+                此結果<strong>不代表</strong>各帳號頭像不同，僅代表系統未能取得足夠圖片進行判斷。
+            </p>
+            {% endif %}
         </div>
         {% endif %}
 
