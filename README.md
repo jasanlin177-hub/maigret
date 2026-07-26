@@ -172,11 +172,11 @@ An additional **Status Legend** sheet lists the meaning of each status code to p
 
 ---
 
-## 🇹🇼 Taiwan Site Support (46 enabled)
+## 🇹🇼 Taiwan Site Support (46 enabled, full list)
 
 Filter with `--tags taiwan` or the "Taiwan Only" button in the Web UI.
 
-### Social / Forums
+### Social / Forums (11)
 
 | Site | Description | Protection |
 |---|---|---|
@@ -185,9 +185,48 @@ Filter with `--tags taiwan` or the "Taiwan Only" button in the Web UI.
 | Mobile01 | Taiwan's largest tech discussion board | TLS fingerprint |
 | Eyny (伊莉討論區) | Taiwan general forum | SHA-256 PoW auto-solve |
 | Backpackers (背包客棧) | Taiwan's largest independent travel forum | — |
+| Plurk (噗浪) | Timeline-based microblog community | — |
+| PTT Web (pttweb.cc) | PTT account lookup | — |
+| iThome ITHelp | IT community author pages | — |
+| StreetVoice (街聲) | Music creator community | — |
 | OP.GG (League of Legends TW) | Game stats lookup | — |
+| eGPU forum | External GPU enthusiast forum (Taiwan-tagged) | — |
 
-### Shopping / Events
+### News Media (author pages, 13)
+
+| Site | Description |
+|---|---|
+| TNL (關鍵評論網) | Multilingual news & commentary |
+| Mirror Media (鏡週刊) | News media reporter pages |
+| TWReporter (報導者) | Non-profit investigative journalism |
+| TVBS | News media reporter pages |
+| INSIDE (硬塞) | Tech media author pages |
+| TechBang (T客邦) | Tech media author pages |
+| TechNews (科技新報) | Tech media author pages |
+| BusinessNext (數位時代) | Business/tech media author pages |
+| GVM (遠見雜誌) | Business media author pages |
+| CommonWealth (天下雜誌) | Business media author pages |
+| PanSci (泛科學) | Science media author pages |
+| StoryStudio (故事) | Culture media author pages |
+| CheersMedia | Career media author pages |
+
+### Blogs / Writing Platforms (11)
+
+| Site | Description |
+|---|---|
+| Vocus (方格子) | Paid subscription writing platform |
+| Pixnet (痞客邦) | Taiwan's largest blog platform |
+| HackMD | Markdown collaborative notes |
+| LikeCoin | Decentralized writing, traceable to crypto accounts |
+| Matters | Decentralized writing community |
+| Womany (女人迷) | Gender issues media author pages |
+| SayDigi | Tech blog author pages |
+| FreeRes (免費資源網路社群) | Tech blog author pages |
+| SoFree | Tech blog author pages |
+| SoFun (軟體玩家) | Tech blog author pages |
+| KOCPC | Tech blog author pages |
+
+### Shopping / Crowdfunding / Events (6)
 
 | Site | Description |
 |---|---|
@@ -196,24 +235,22 @@ Filter with `--tags taiwan` or the "Taiwan Only" button in the Web UI.
 | KKTIX | Event ticketing (subdomain format) |
 | Accupass (活動通) | Event organizer pages |
 | Zeczec (嘖嘖) | Taiwan crowdfunding platform |
+| flyingV | Crowdfunding platform |
 
-### Media / Creative
-
-| Site | Description |
-|---|---|
-| TechBang (T客邦) | Tech media author pages |
-| Womany (女人迷) | Gender issues media |
-| TWReporter (報導者) | Non-profit investigative journalism |
-| iThome | Taiwan IT media |
-| TNL (關鍵評論網) | Multilingual news & commentary |
-
-### Knowledge / Writing
+### Career / Professional (3)
 
 | Site | Description |
 |---|---|
-| HackMD | Markdown collaborative notes |
-| Vocus (方格子) | Paid subscription writing platform |
+| CakeResume | Public résumé platform |
+| Yourator | Startup job-seeking platform |
+| StockFeel (股感) | Finance writing author pages |
+
+### Food / Lifestyle (2)
+
+| Site | Description |
+|---|---|
 | iCook (愛料理) | Recipe community |
+| Cookpad (Taiwan) | Recipe community |
 
 ---
 
@@ -498,11 +535,11 @@ maigret --web 5000
 
 ---
 
-## 🇹🇼 臺灣站點支援（46 個已啟用）
+## 🇹🇼 臺灣站點支援（46 個已啟用，完整清單）
 
 以 --tags taiwan 或網頁 UI「只查臺灣站」按鈕篩選。
 
-### 社群 / 論壇
+### 社群 / 論壇（11）
 
 | 站點 | 說明 | 防護機制 |
 |---|---|---|
@@ -511,9 +548,48 @@ maigret --web 5000
 | Mobile01 | 臺灣最大科技討論區 | TLS 指紋偽裝 |
 | 伊莉討論區（Eyny） | 臺灣綜合論壇 | SHA-256 PoW 自動解題 |
 | 背包客棧（Backpackers） | 臺灣最大自助旅行論壇 | — |
+| 噗浪（Plurk） | 時間軸微網誌社群 | — |
+| PTT（Web版，pttweb.cc） | PTT 帳號查詢 | — |
+| iThome 鐵人賽 | IT 技術社群作者頁 | — |
+| 街聲（StreetVoice） | 音樂創作者社群 | — |
 | OP.GG（英雄聯盟台服） | 遊戲戰績查詢 | — |
+| eGPU 論壇 | 外接顯卡技術論壇（含臺灣標籤） | — |
 
-### 購物 / 活動
+### 新聞媒體（作者頁，13）
+
+| 站點 | 說明 |
+|---|---|
+| 關鍵評論網（TNL） | 多語言新聞評論平台 |
+| 鏡週刊（MirrorMedia） | 新聞媒體記者作者頁 |
+| 報導者（TWReporter） | 非營利調查報導 |
+| TVBS | 新聞媒體記者個人頁 |
+| 硬塞（INSIDE） | 科技媒體作者頁 |
+| T客邦（TechBang） | 科技媒體作者頁 |
+| 科技新報（TechNews） | 科技媒體作者頁 |
+| 數位時代（BusinessNext） | 商業科技媒體作者頁 |
+| 遠見雜誌（GVM） | 商業媒體作者頁 |
+| 天下雜誌（CommonWealth） | 商業媒體作者頁 |
+| 泛科學（PanSci） | 科學媒體作者頁 |
+| 故事 StoryStudio | 文化媒體作者頁 |
+| Cheers 快樂工作人 | 職涯媒體作者頁 |
+
+### 部落格 / 寫作平台（11）
+
+| 站點 | 說明 |
+|---|---|
+| 方格子（Vocus） | 付費訂閱寫作平台 |
+| 痞客邦（Pixnet） | 臺灣最大部落格平台 |
+| HackMD | Markdown 協作筆記平台 |
+| LikeCoin | 去中心化寫作，可追查加密貨幣帳號關聯 |
+| Matters | 區塊鏈寫作社群 |
+| 女人迷（Womany） | 性別議題媒體作者頁 |
+| SayDigi | 科技部落格作者頁 |
+| 免費資源網路社群（FreeRes） | 科技部落格作者頁 |
+| SoFree | 科技部落格作者頁 |
+| 軟體玩家（SoFun） | 科技部落格作者頁 |
+| KOC 電腦王阿達（KOCPC） | 科技部落格作者頁 |
+
+### 購物 / 群眾募資 / 活動（6）
 
 | 站點 | 說明 |
 |---|---|
@@ -522,24 +598,22 @@ maigret --web 5000
 | KKTIX | 活動售票平台（子域名格式） |
 | Accupass 活動通 | 活動主辦單位頁面 |
 | 嘖嘖（Zeczec） | 臺灣群眾募資平台 |
+| flyingV | 群眾募資平台 |
 
-### 媒體 / 創作
-
-| 站點 | 說明 |
-|---|---|
-| T客邦（TechBang） | 科技媒體作者頁 |
-| 女人迷（Womany） | 性別議題媒體 |
-| 報導者（TWReporter） | 非營利調查報導 |
-| iThome 電腦報 | 臺灣 IT 媒體 |
-| 關鍵評論網（TNL） | 多語言新聞評論平台 |
-
-### 知識 / 寫作
+### 職涯 / 專業（3）
 
 | 站點 | 說明 |
 |---|---|
-| HackMD | Markdown 協作筆記平台 |
-| 方格子（Vocus） | 付費訂閱寫作平台 |
+| CakeResume | 公開履歷平台 |
+| Yourator | 新創求職平台 |
+| 股感（StockFeel） | 財經寫作作者頁 |
+
+### 飲食 / 生活（2）
+
+| 站點 | 說明 |
+|---|---|
 | 愛料理（iCook） | 食譜社群 |
+| Cookpad（台灣） | 食譜社群 |
 
 ---
 
