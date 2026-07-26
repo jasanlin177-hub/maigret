@@ -107,7 +107,18 @@ MAX_IMAGE_BYTES = 5 * 1024 * 1024  # 5MB
 MAX_CONCURRENT_FETCHES = 5
 
 # 單次下載逾時秒數
-FETCH_TIMEOUT_SECONDS = 10
+FETCH_TIMEOUT_SECONDS = 15
+
+# 暫時性失敗的重試次數。
+#
+# 關聯分析緊接在主查詢（掃描數百個站點）之後執行，此時 GitHub、Medium 等
+# 熱門站點剛被密集請求過，頭像 CDN 容易回 429／5xx 或逾時。實測同一批網址
+# 在閒置時 22/23 成功，但在查詢後立即執行卻可能只剩 8 個成功。
+# 這類失敗多為暫時性，稍候重試即可取得，故針對 429／5xx／逾時／連線錯誤重試。
+FETCH_MAX_RETRIES = 2
+
+# 重試前的等待秒數（第 n 次重試等待 RETRY_BACKOFF_SECONDS * n 秒）
+RETRY_BACKOFF_SECONDS = 1.5
 
 
 @dataclass
@@ -135,6 +146,10 @@ class CorrelationStats:
     unreadable: int = 0            # 下載成功但圖片無法解析
     skipped_default: int = 0       # 判定為平台預設圖／logo 而排除
     skipped_no_feature: int = 0    # 圖片無足夠特徵（純色、空白佔位圖）
+
+    # 逐站失敗原因 {站點名稱: 原因}，供介面列出「哪些站點沒比對到、為什麼」，
+    # 讓偵查人員能自行判斷是否需要人工補查該站頭像
+    failures: Dict[str, str] = field(default_factory=dict)
 
     @property
     def unavailable(self) -> int:
@@ -219,48 +234,75 @@ async def _fetch_and_hash(
         避免把「抓不到圖」誤報成「頭像不相似」。
     """
     if not image_url or not image_url.startswith(("http://", "https://")):
-        return None, "download_failed"
+        return None, "download_failed:網址格式無效"
 
     # 由網址即可判定的平台預設圖／logo，在下載前就跳過
     if is_default_avatar_url(image_url):
         logger.debug(f"略過疑似平台預設頭像（{site_name}）：{image_url}")
-        return None, "skipped_default"
+        return None, "skipped_default:平台預設圖"
 
-    async with semaphore:
-        try:
-            async with session.get(
-                image_url,
-                timeout=aiohttp.ClientTimeout(total=FETCH_TIMEOUT_SECONDS),
-                ssl=False,
-            ) as resp:
-                if resp.status != 200:
-                    logger.debug(
-                        f"頭像下載失敗（{site_name}）：HTTP {resp.status}"
-                    )
-                    return None, "download_failed"
-                content_length = resp.content_length
-                if content_length and content_length > MAX_IMAGE_BYTES:
-                    return None, "download_failed"
+    last_error = "未知錯誤"
 
-                # 注意：resp.content.read(n) 遇到分段傳輸（chunked transfer）時
-                # 可能提早返回、讀不滿完整內容，導致 PIL 解析時出現
-                # "image file is truncated"。改用 iter_chunked 迴圈累積，
-                # 直到真正讀到 EOF 或超過大小上限為止。
-                chunks = bytearray()
-                async for chunk in resp.content.iter_chunked(65536):
-                    chunks.extend(chunk)
-                    if len(chunks) > MAX_IMAGE_BYTES:
-                        return None, "download_failed"
-                data = bytes(chunks)
-        except Exception as e:
-            logger.debug(f"頭像下載失敗（{site_name}）：{type(e).__name__}: {e}")
-            return None, "download_failed"
+    for attempt in range(FETCH_MAX_RETRIES + 1):
+        if attempt:
+            await asyncio.sleep(RETRY_BACKOFF_SECONDS * attempt)
 
-    h = compute_dhash(data)
-    if h is None:
-        logger.debug(f"頭像無法解析（{site_name}）：圖片格式錯誤或檔案毀損")
-        return None, "unreadable"
-    return h, "ok"
+        async with semaphore:
+            try:
+                async with session.get(
+                    image_url,
+                    timeout=aiohttp.ClientTimeout(total=FETCH_TIMEOUT_SECONDS),
+                    ssl=False,
+                ) as resp:
+                    if resp.status != 200:
+                        last_error = f"HTTP {resp.status}"
+                        # 429（速率限制）與 5xx（伺服器暫時錯誤）屬暫時性，值得重試；
+                        # 404／403 等為明確拒絕，重試無意義，直接放棄。
+                        if resp.status == 429 or 500 <= resp.status < 600:
+                            logger.debug(
+                                f"頭像下載暫時失敗（{site_name}）：{last_error}，"
+                                f"第 {attempt + 1} 次嘗試"
+                            )
+                            continue
+                        logger.debug(f"頭像下載失敗（{site_name}）：{last_error}")
+                        return None, f"download_failed:{last_error}"
+
+                    content_length = resp.content_length
+                    if content_length and content_length > MAX_IMAGE_BYTES:
+                        return None, "download_failed:圖片過大"
+
+                    # 注意：resp.content.read(n) 遇到分段傳輸（chunked transfer）時
+                    # 可能提早返回、讀不滿完整內容，導致 PIL 解析時出現
+                    # "image file is truncated"。改用 iter_chunked 迴圈累積，
+                    # 直到真正讀到 EOF 或超過大小上限為止。
+                    chunks = bytearray()
+                    async for chunk in resp.content.iter_chunked(65536):
+                        chunks.extend(chunk)
+                        if len(chunks) > MAX_IMAGE_BYTES:
+                            return None, "download_failed:圖片過大"
+                    data = bytes(chunks)
+
+            except asyncio.TimeoutError:
+                last_error = "逾時"
+                logger.debug(
+                    f"頭像下載逾時（{site_name}），第 {attempt + 1} 次嘗試"
+                )
+                continue
+            except Exception as e:
+                last_error = type(e).__name__
+                logger.debug(
+                    f"頭像下載錯誤（{site_name}）：{last_error}: {e}，"
+                    f"第 {attempt + 1} 次嘗試"
+                )
+                continue
+
+        h = compute_dhash(data)
+        if h is None:
+            logger.debug(f"頭像無法解析（{site_name}）：圖片格式錯誤或檔案毀損")
+            return None, "unreadable:圖片無法解析"
+        return h, "ok"
+
+    return None, f"download_failed:{last_error}（已重試 {FETCH_MAX_RETRIES} 次）"
 
 
 async def compute_avatar_hashes(
@@ -303,13 +345,17 @@ async def compute_avatar_hashes(
 
     hashes: Dict[str, int] = {}
     for site_name, (h, reason) in zip(tasks.keys(), results):
-        if reason == "ok" and h is not None:
+        # reason 格式為 "類別" 或 "類別:詳細說明"
+        kind, _, detail = reason.partition(":")
+        if kind == "ok" and h is not None:
             hashes[site_name] = h
-        elif reason == "download_failed":
+            continue
+        stats.failures[site_name] = detail or kind
+        if kind == "download_failed":
             stats.download_failed += 1
-        elif reason == "unreadable":
+        elif kind == "unreadable":
             stats.unreadable += 1
-        elif reason == "skipped_default":
+        elif kind == "skipped_default":
             stats.skipped_default += 1
 
     if stats.unavailable:
@@ -365,6 +411,7 @@ def filter_default_avatars(
             logger.debug(f"排除無特徵頭像（{site_name}）：雜湊值資訊量不足")
             if stats is not None:
                 stats.skipped_no_feature += 1
+                stats.failures[site_name] = "圖片無足夠視覺特徵"
             continue
         if hash_counts[h] > max_shared_sites:
             logger.debug(
@@ -373,6 +420,9 @@ def filter_default_avatars(
             )
             if stats is not None:
                 stats.skipped_default += 1
+                stats.failures[site_name] = (
+                    f"疑似平台預設圖（{hash_counts[h]} 站共用）"
+                )
             continue
         filtered[site_name] = h
 

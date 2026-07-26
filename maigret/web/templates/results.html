@@ -180,6 +180,44 @@
         background: var(--bg-card);
         color: var(--text-muted);
     }
+    .corr-failures {
+        margin-top: 0.7rem;
+        border-top: 1px solid var(--border-color);
+        padding-top: 0.6rem;
+    }
+    .corr-failures summary {
+        cursor: pointer;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        user-select: none;
+    }
+    .corr-failures summary:hover { color: var(--accent); }
+    .corr-fail-list {
+        list-style: none;
+        padding: 0;
+        margin: 0.6rem 0 0;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+    .corr-fail-list li {
+        display: flex;
+        gap: 0.6rem;
+        font-size: 0.76rem;
+        align-items: baseline;
+    }
+    .corr-fail-site {
+        color: var(--text-primary);
+        min-width: 150px;
+        font-family: 'SF Mono', ui-monospace, monospace;
+    }
+    .corr-fail-reason { color: var(--text-muted); }
+    .corr-fail-hint {
+        font-size: 0.74rem;
+        color: var(--text-muted);
+        line-height: 1.5;
+        margin: 0.7rem 0 0;
+    }
     .correlation-note strong { color: var(--warning, #f59e0b); }
     .cluster-item {
         border-left: 3px solid var(--accent);
@@ -541,6 +579,21 @@
                 {% endif %}
                 此結果<strong>不代表</strong>各帳號頭像不同，僅代表系統未能取得足夠圖片進行判斷。
             </p>
+            {% endif %}
+
+            {% if st.failures %}
+            <details class="corr-failures">
+                <summary>未納入比對的 {{ st.failures | length }} 個站點（點此展開原因）</summary>
+                <ul class="corr-fail-list">
+                    {% for site, reason in st.failures %}
+                    <li><span class="corr-fail-site">{{ site }}</span><span class="corr-fail-reason">{{ reason }}</span></li>
+                    {% endfor %}
+                </ul>
+                <p class="corr-fail-hint">
+                    頭像網址常含有時效性參數，或平台在短時間內大量請求後會暫時拒絕存取。
+                    若需確認上述站點的頭像，可直接開啟該帳號頁面人工比對。
+                </p>
+            </details>
             {% endif %}
         </div>
         {% endif %}

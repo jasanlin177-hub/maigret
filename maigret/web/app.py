@@ -320,6 +320,9 @@ def process_search_task(usernames, options, timestamp, started_at):
                         'download_failed': stats.download_failed,
                         'unreadable': stats.unreadable,
                         'excluded': stats.excluded,
+                        # 逐站失敗原因，讓偵查人員知道哪些站點沒比對到、為什麼，
+                        # 必要時可自行人工補查該站頭像
+                        'failures': sorted(stats.failures.items()),
                     }
                 except Exception as e:
                     correlation_error = str(e)
