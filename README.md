@@ -4,7 +4,7 @@
 
 Maigret collects a dossier on a person by username only, checking for accounts on a huge number of sites and gathering all available information from web pages. No API keys required.
 
-This fork ([jasanlin177-hub/maigret](https://github.com/jasanlin177-hub/maigret)) builds on the upstream [soxoj/maigret](https://github.com/soxoj/maigret) with deep enhancements for Taiwan users: a fully Traditional Chinese web interface, 90 Taiwan-local sites, formatted Excel reports, SHA-256 PoW bypass, and Windows compatibility fixes.
+This fork ([jasanlin177-hub/maigret](https://github.com/jasanlin177-hub/maigret)) builds on the upstream [soxoj/maigret](https://github.com/soxoj/maigret) with deep enhancements for Taiwan users: a fully Traditional Chinese web interface, 46 enabled Taiwan-local sites, avatar correlation analysis, formatted Excel reports, SHA-256 PoW bypass, and Windows compatibility fixes.
 
 ---
 
@@ -23,7 +23,8 @@ This fork ([jasanlin177-hub/maigret](https://github.com/jasanlin177-hub/maigret)
 
 | Feature | Upstream | Taiwan Fork |
 |---|---|---|
-| Taiwan sites | Partially disabled | 90 Taiwan sites (`taiwan` tag) |
+| Taiwan sites | Partially disabled | **46 enabled** (`taiwan` tag; 45 more disabled due to platform limits) |
+| Avatar correlation | ✗ | ✅ dHash visual-similarity matching to flag likely-same-person accounts |
 | Web UI language | English | Full Traditional Chinese UI |
 | Excel report | ✗ | ✅ Formatted .xlsx (column width, alignment, info sheet) |
 | HTML / CSV column headers | English | Bilingual (EN + ZH) |
@@ -81,7 +82,7 @@ docker run maigret-cli <username> --html
 # Search a single username (default: top 500 sites by traffic)
 maigret <username>
 
-# Taiwan sites only (90 sites)
+# Taiwan sites only (46 enabled)
 maigret <username> --tags taiwan
 
 # Multiple usernames
@@ -115,7 +116,7 @@ maigret --web 5000
 
 | Button | Function |
 |---|---|
-| 🇹🇼 Taiwan Only | Applies `--tags taiwan` automatically — scans 90 Taiwan-local sites |
+| 🇹🇼 Taiwan Only | Applies `--tags taiwan` automatically — scans 46 enabled Taiwan-local sites |
 | Top 500 | Set to top 500 sites by traffic (default) |
 | All Sites | Enable full-database scan (~3,200+ sites) |
 | ✕ Clear Filters | Reset all filters |
@@ -126,13 +127,19 @@ maigret --web 5000
 - ✉️ Email
 - 🏷️ Nickname
 
+### Advanced Options
+
+- **Avatar correlation analysis** (optional, adds ~20–40s to query time): compares avatar visual similarity across sites to flag accounts likely belonging to the same person
+- Disable recursive search, disable data extraction, domain check, proxy / Tor / I2P settings
+
 ### Results Page
 
 - Account count bar (Found / Report Done / Search Target)
 - Status explanation block (expanded by default — clarifies Available / Unknown meanings)
 - Completion time shown in Taiwan timezone (UTC+8), plus total search duration
 - Per-target report sections are collapsible — click header to toggle; each account's HTML report is fully independent
-- Printing / saving as PDF auto-paginates multi-account reports, one page per account with its own heading
+- **Avatar correlation results** (if enabled): clearly distinguishes "successfully compared" from "unavailable" counts, and lists which sites were excluded and why — so a failed download is never mistaken for "avatars are different"
+- Printing / saving as PDF auto-paginates multi-account reports, one page per account with its own heading; the downloadable HTML report matches the web results page content
 - Account relationship graph (Pyvis interactive)
 - Header shows cumulative "page views" and "searches run" usage badges
 
@@ -165,7 +172,7 @@ An additional **Status Legend** sheet lists the meaning of each status code to p
 
 ---
 
-## 🇹🇼 Taiwan Site Support (90 sites)
+## 🇹🇼 Taiwan Site Support (46 enabled)
 
 Filter with `--tags taiwan` or the "Taiwan Only" button in the Web UI.
 
@@ -178,6 +185,7 @@ Filter with `--tags taiwan` or the "Taiwan Only" button in the Web UI.
 | Mobile01 | Taiwan's largest tech discussion board | TLS fingerprint |
 | Eyny (伊莉討論區) | Taiwan general forum | SHA-256 PoW auto-solve |
 | Backpackers (背包客棧) | Taiwan's largest independent travel forum | — |
+| OP.GG (League of Legends TW) | Game stats lookup | — |
 
 ### Shopping / Events
 
@@ -243,6 +251,18 @@ Shopee is a single-page application (SPA); reading raw page source cannot determ
 
 Page-view and search counts are persisted via SQLite, surviving container restarts. Badges are shown in the top navigation bar.
 
+### Avatar Correlation Analysis
+
+A single username often gets claimed by unrelated people across hundreds of sites. This fork adds dHash (difference hash) comparison to flag avatars that are visually near-identical, helping identify accounts likely belonging to the same person:
+
+1. Generic OpenGraph extraction (no per-site rules needed) fills in avatar URLs, raising extraction coverage from ~23% to over 75%
+2. Avatars are downloaded and hashed into a 64-bit dHash; a Hamming distance ≤10 is treated as visually similar
+3. Platform default avatars/logos are automatically excluded (via URL-keyword matching and over-shared-hash detection)
+4. Downloads automatically retry on 429/5xx/timeout, since they run right after a burst of requests to the same popular sites and hit transient rate limits more often than isolated fetches would
+5. Results explicitly separate "successfully compared" from "unavailable" counts and list the reason per excluded site — **a failed download is never silently reported as "avatars are different"**, which would otherwise make a finding look more conclusive than it is
+
+> **Important limitation:** this is supporting evidence only, not sufficient on its own to establish that accounts belong to the same person — always verify manually. Avatar URLs often contain time-limited tokens and are only valid at query time.
+
 ---
 
 ## ☁️ Cloud Deployment
@@ -261,6 +281,8 @@ Full deployment scripts are provided in [`deploy/oracle/`](deploy/oracle/README.
 4. Optional: point a free subdomain (e.g. [DuckDNS](https://www.duckdns.org)) at the VM — `deploy/oracle/Caddyfile` already includes automatic HTTPS (Let's Encrypt)
 
 > **Note:** Oracle's ARM shape (A1.Flex) frequently fails to launch due to regional capacity shortages — a known platform limitation. `deploy/oracle/retry-launch/` provides an auto-retry script, or use the more readily-available AMD shape (E2.1.Micro, 1GB RAM, suitable for lightweight queries) instead.
+
+> ⚠️ **Important:** `maigret --web` by default checks **upstream soxoj/maigret** (not this fork) every 24 hours and silently overwrites the cached site database with the upstream version — wiping out this fork's Taiwan customizations (e.g. Shopee) with no warning. This fork's Dockerfile already passes `--no-autoupdate` to disable this; keep that flag if you modify the entrypoint yourself.
 
 ### Option 2: Render.com (free — good for backup or quick testing)
 
@@ -308,7 +330,7 @@ Released under the MIT License.
 
 Maigret 僅憑用戶名稱即可蒐集個人資料，透過檢查大量網站的帳號並從網頁擷取所有可用資訊。無需 API 金鑰。
 
-本分支（[jasanlin177-hub/maigret](https://github.com/jasanlin177-hub/maigret)）以上游 [soxoj/maigret](https://github.com/soxoj/maigret) 為基礎，針對臺灣使用情境進行深度強化：全繁體中文網頁介面、90 個臺灣本土站點、格式化 Excel 報告、SHA-256 PoW 繞過，以及 Windows 相容性修正。
+本分支（[jasanlin177-hub/maigret](https://github.com/jasanlin177-hub/maigret)）以上游 [soxoj/maigret](https://github.com/soxoj/maigret) 為基礎，針對臺灣使用情境進行深度強化：全繁體中文網頁介面、46 個已啟用的臺灣本土站點、頭像關聯分析、格式化 Excel 報告、SHA-256 PoW 繞過，以及 Windows 相容性修正。
 
 ---
 
@@ -327,7 +349,8 @@ Maigret 僅憑用戶名稱即可蒐集個人資料，透過檢查大量網站的
 
 | 功能面向 | 上游原版 | 臺灣加強版 |
 |---|---|---|
-| 臺灣站點 | 部分停用 | 90 個臺灣站點（taiwan 標籤） |
+| 臺灣站點 | 部分停用 | 46 個已啟用（taiwan 標籤，另有 45 個因平台限制暫不支援） |
+| 頭像關聯分析 | ✗ | ✅ dHash 視覺相似度比對，輔助判斷多帳號是否屬於同一人 |
 | 網頁介面語言 | 英文 | 全繁體中文介面 |
 | Excel 報告 | ✗ | ✅ 格式化 .xlsx（欄寬、置中、說明工作表） |
 | HTML / CSV 報告欄位 | 英文 | 中英對照雙語 |
@@ -385,7 +408,7 @@ docker run maigret-cli <用戶名稱> --html
 # 查詢單一用戶名稱（預設查流量前 500 名網站）
 maigret <用戶名稱>
 
-# 只查臺灣站點（90 個）
+# 只查臺灣站點（46 個已啟用）
 maigret <用戶名稱> --tags taiwan
 
 # 同時查詢多個用戶名稱
@@ -419,7 +442,7 @@ maigret --web 5000
 
 | 按鈕 | 功能 |
 |---|---|
-| 🇹🇼 只查臺灣站 | 自動套用 --tags taiwan，掃描 90 個臺灣本土站點 |
+| 🇹🇼 只查臺灣站 | 自動套用 --tags taiwan，掃描 46 個已啟用的臺灣本土站點 |
 | 查前 500 站 | 設定為流量前 500 名（預設值） |
 | 查全部站點 | 啟用全庫掃描（約 3,200+ 站） |
 | ✕ 清除篩選 | 重置所有篩選條件 |
@@ -430,13 +453,19 @@ maigret --web 5000
 - ✉️ Email
 - 🏷️ 暱稱（Nickname）
 
+### 進階選項
+
+- 頭像關聯分析（選用，勾選後查詢時間增加約 20～40 秒）：比對各站頭像視覺相似度，找出可能屬於同一人的帳號群組
+- 停用遞迴搜尋、停用資訊擷取、查詢網域、代理伺服器 / Tor / I2P 設定
+
 ### 結果頁
 
 - 帳號數量統計列（找到 / 完成報告 / 搜尋目標）
 - 狀態說明區塊（預設展開，說明 Available / Unknown 等狀態意義，避免誤解）
 - 完成時間標示臺灣時區（UTC+8），並顯示本次查詢耗時
 - 各目標報告可折疊展開，點擊標題列切換；每個帳號的 HTML 報告內容各自獨立
-- 列印 / 另存 PDF 時，多帳號報告會自動逐一分頁，每頁附上帳號標頭
+- 頭像關聯分析結果（若已啟用）：明確區分「實際比對成功數」與「無法取得數」，並列出未納入比對的站點與原因，避免把下載失敗誤讀為「頭像不相似」
+- 列印 / 另存 PDF 時，多帳號報告會自動逐一分頁，每頁附上帳號標頭；下載的 HTML 報告內容與網頁結果頁一致
 - 帳號關聯圖（Pyvis 互動式圖形）
 - 頁首顯示累計「開頁次數」與「查詢次數」統計徽章
 
@@ -469,7 +498,7 @@ maigret --web 5000
 
 ---
 
-## 🇹🇼 臺灣站點支援（90 個）
+## 🇹🇼 臺灣站點支援（46 個已啟用）
 
 以 --tags taiwan 或網頁 UI「只查臺灣站」按鈕篩選。
 
@@ -482,6 +511,7 @@ maigret --web 5000
 | Mobile01 | 臺灣最大科技討論區 | TLS 指紋偽裝 |
 | 伊莉討論區（Eyny） | 臺灣綜合論壇 | SHA-256 PoW 自動解題 |
 | 背包客棧（Backpackers） | 臺灣最大自助旅行論壇 | — |
+| OP.GG（英雄聯盟台服） | 遊戲戰績查詢 | — |
 
 ### 購物 / 活動
 
@@ -547,6 +577,18 @@ maigret --web 5000
 
 以 SQLite 持久化記錄「開頁次數」與「查詢次數」，即使容器重新啟動也不會歸零，統計徽章顯示於頁面頂部導覽列。
 
+### 頭像關聯分析（Avatar Correlation）
+
+單一使用者名稱常在數百個站點被「同名但不同人」搶到，本分支加入 dHash（差異雜湊）比對，找出視覺上高度相似的頭像群組，輔助判斷哪些帳號可能屬於同一人：
+
+1. 通用 OpenGraph 擷取（不依賴站點專屬規則）補齊頭像網址，將擷取覆蓋率由約 23% 提升至 75% 以上
+2. 下載頭像並計算 64-bit dHash，以漢明距離 ≤10 判定為視覺相似
+3. 自動排除平台預設圖／logo（含網址關鍵字判定與同雜湊值過度共用判定）
+4. 頭像下載遇 429／5xx／逾時會自動重試（因查詢流程剛密集請求過熱門站點，暫時性失敗率較高）
+5. 結果明確區分「實際比對成功數」與「無法取得數」並列出逐站原因，**避免把下載失敗誤報為「頭像不相似」**——這類誤報若不揭露，會讓查詢結果看起來比實際更確定
+
+> 重要限制：本結果僅為輔助線索，不足以單獨作為同一人之認定依據，請務必人工核實。頭像網址多含時效性參數，僅在查詢當下有效。
+
 ---
 
 ## ☁️ 雲端部署
@@ -565,6 +607,8 @@ Always Free 方案可取得 ARM 機型（最高 4 OCPU / 24GB）或 AMD 機型�
 4. 可選：綁定 DuckDNS 等免費子網域，`deploy/oracle/Caddyfile` 已內建自動 HTTPS（Let's Encrypt）設定
 
 > 注意：甲骨文 ARM 機型（A1.Flex）常因區域容量不足而建立失敗，屬平台已知限制。`deploy/oracle/retry-launch/` 提供自動重試腳本，或改用較容易建立成功的 AMD 機型（E2.1.Micro，1GB 記憶體，適合輕量查詢）。
+
+> ⚠️ 重要：`maigret --web` 預設每 24 小時會自動從 **upstream soxoj/maigret**（非本 fork）下載官方站點資料庫並整份覆蓋快取，會靜默抹除本 fork 客製的臺灣站點設定（如蝦皮）且無任何告警。本分支 Dockerfile 已加上 `--no-autoupdate` 停用此機制；若自行修改啟動指令，務必保留此參數。
 
 ### 方案二：Render.com（免費，適合備援或臨時測試）
 
