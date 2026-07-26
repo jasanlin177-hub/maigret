@@ -431,7 +431,6 @@ def search():
         'proxy': request.form.get('proxy', None) or None,
         'tor_proxy': request.form.get('tor_proxy', None) or None,
         'i2p_proxy': request.form.get('i2p_proxy', None) or None,
-        'permute': 'permute' in request.form,
         'correlate_avatars': 'correlate_avatars' in request.form,
         'tags': selected_tags,  # Pass selected tags as a list
         'excluded_tags': excluded_tags,  # Pass excluded tags as a list
