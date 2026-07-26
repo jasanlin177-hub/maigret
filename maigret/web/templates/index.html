@@ -415,12 +415,12 @@
             </div>
         </div>
 
-        <!-- ── 進階選項（可收合）── -->
+        <!-- ── 進階選項（可收合，預設展開，避免「頭像關聯分析」等選項被藏起來沒人發現）── -->
         <div class="collapsible-header" onclick="toggleCollapse('advanced')">
             <h6>進階選項</h6>
-            <span class="chevron-icon">▼</span>
+            <span class="chevron-icon open">▼</span>
         </div>
-        <div id="advanced" class="collapsible-body">
+        <div id="advanced" class="collapsible-body show">
             <div class="mb-3 form-check">
                 <input type="checkbox" class="form-check-input" id="permute" name="permute">
                 <label class="form-check-label" for="permute">啟用使用者名稱排列組合</label>

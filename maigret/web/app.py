@@ -268,8 +268,9 @@ def process_search_task(usernames, options, timestamp, started_at):
             maigret.report.save_json_report(
                 json_path, username, results, report_type='ndjson'
             )
-            # PDF 改用瀏覽器列印 HTML 報告（中文正常），不再產生內建 PDF
-            maigret.report.save_html_report(html_path, context)
+            # 注意：save_html_report 移到頭像關聯分析執行「之後」（見下方），
+            # 避免下載的 HTML 報告在關聯分析資料產生前就已存檔完畢，
+            # 導致網頁結果頁看得到關聯分析、下載的 HTML 報告卻沒有。
 
             claimed_profiles = []
             site_avatars = {}
@@ -296,10 +297,16 @@ def process_search_task(usernames, options, timestamp, started_at):
 
             # 頭像關聯分析（選用）：比對各站頭像視覺相似度，
             # 找出可能屬於同一人的帳號群組。失敗不影響主要查詢結果。
+            #
+            # correlation_requested 記錄「使用者是否勾選了這個選項」，
+            # 讓結果頁能明確區分「沒有啟用」「啟用了但沒抓到頭像可比對」
+            # 「啟用且執行完成」三種狀態，避免使用者誤以為功能故障、
+            # 或誤以為系統已比對過而其實根本沒跑。
+            correlation_requested = bool(options.get('correlate_avatars'))
             avatar_clusters = []
             avatar_stats = None
             correlation_error = None
-            if options.get('correlate_avatars') and site_avatars:
+            if correlation_requested and site_avatars:
                 try:
                     clusters, stats = loop.run_until_complete(
                         correlate_avatars(site_avatars, logger=logging.getLogger('maigret'))
@@ -328,6 +335,16 @@ def process_search_task(usernames, options, timestamp, started_at):
                     correlation_error = str(e)
                     logging.warning(f"頭像關聯分析失敗（不影響查詢結果）：{e}")
 
+            # 把關聯分析結果一併塞進 context，讓下載的 HTML 報告與
+            # 網頁結果頁呈現一致的內容，不再各自為政
+            context['correlation_requested'] = correlation_requested
+            context['avatar_url_count'] = len(site_avatars)
+            context['avatar_clusters'] = avatar_clusters
+            context['avatar_stats'] = avatar_stats
+            context['correlation_error'] = correlation_error
+            # PDF 改用瀏覽器列印 HTML 報告（中文正常），不再產生內建 PDF
+            maigret.report.save_html_report(html_path, context)
+
             individual_reports.append(
                 {
                     'username': username,
@@ -336,6 +353,8 @@ def process_search_task(usernames, options, timestamp, started_at):
                     'json_file': f"search_{timestamp}/report_{safe_username}.json",
                     'html_file': f"search_{timestamp}/report_{safe_username}.html",
                     'claimed_profiles': claimed_profiles,
+                    'correlation_requested': correlation_requested,
+                    'avatar_url_count': len(site_avatars),
                     'avatar_clusters': avatar_clusters,
                     'avatar_stats': avatar_stats,
                     'correlation_error': correlation_error,

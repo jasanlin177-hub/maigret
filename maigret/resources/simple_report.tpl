@@ -121,6 +121,49 @@
                 </div>
             </div>
         </div>
+        {% if correlation_requested is defined and correlation_requested %}
+        <div class="row-mb">
+            <div class="col-md">
+                <div class="card flex-md-row mb-4 box-shadow h-md-250">
+                    <div class="card-body d-flex flex-column align-items-start">
+                        <h5><span class="label-zh">🔗 頭像關聯分析</span> <span class="label-en">/ Avatar Correlation</span></h5>
+                        {% if correlation_error %}
+                        <span>分析未能執行，本次結果不包含頭像關聯資訊。錯誤訊息：{{ correlation_error }}</span>
+                        {% elif not avatar_stats %}
+                        <span>已啟用頭像關聯分析，但本次查詢沒有擷取到任何帳號頭像，無法進行比對。</span>
+                        {% else %}
+                        <span>
+                            實際比對 {{ avatar_stats.compared }} 個、無法取得 {{ avatar_stats.unavailable }} 個、
+                            排除預設圖 {{ avatar_stats.excluded }} 個（共收集 {{ avatar_stats.total_urls }} 個頭像網址）。
+                        </span>
+                        {% if avatar_clusters %}
+                        <div style="margin-top:0.75rem;">
+                            <div style="font-size:0.85rem;color:#856404;margin-bottom:0.5rem;">
+                                以下各組帳號頭像視覺高度相似，<strong>可能</strong>屬於同一人。
+                                本結果僅為輔助線索，不足以單獨作為同一人之認定依據，請務必人工核實。
+                            </div>
+                            {% for cluster in avatar_clusters %}
+                            <div style="margin-bottom:0.5rem;">
+                                <strong>第 {{ loop.index }} 組（{{ cluster.site_names | length }} 個帳號頭像相似）：</strong>
+                                {{ cluster.site_names | join('、') }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <span>已比對的頭像中，未發現視覺相似的群組。</span>
+                        {% endif %}
+                        {% if avatar_stats.failures %}
+                        <div style="margin-top:0.6rem;font-size:0.82rem;color:#6c757d;">
+                            未納入比對的站點：
+                            {% for site, reason in avatar_stats.failures %}{{ site }}（{{ reason }}）{% if not loop.last %}、{% endif %}{% endfor %}
+                        </div>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
         {% for u, t, data in results %}
             {% for k, v in data.items() %}
                 {% if v.found and not v.is_similar %}

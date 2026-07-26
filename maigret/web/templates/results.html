@@ -146,6 +146,11 @@
         padding: 1rem 1.15rem;
         margin-bottom: 1.25rem;
     }
+    .correlation-block-muted {
+        background: transparent;
+        border-style: dashed;
+        opacity: 0.75;
+    }
     .correlation-note {
         font-size: 0.8rem;
         color: var(--text-muted);
@@ -516,13 +521,30 @@
             </a>
         </div>
 
-        <!-- 頭像關聯分析結果 -->
-        {% if report.correlation_error %}
+        <!-- 頭像關聯分析結果：無論是否啟用都要明確呈現狀態，
+             避免「沒有顯示」被誤解為「功能故障」-->
+        {% if not report.correlation_requested %}
+        <div class="correlation-block correlation-block-muted">
+            <div class="profiles-title">🔗 頭像關聯分析</div>
+            <p class="correlation-note">
+                本次查詢<strong>未啟用</strong>頭像關聯分析（查詢頁「進階選項」中的核取方塊未勾選）。
+                如需比對各帳號頭像找出可能屬於同一人的群組，請於下次查詢時展開「進階選項」並勾選後再送出。
+            </p>
+        </div>
+        {% elif report.correlation_error %}
         <div class="correlation-block">
             <div class="profiles-title">🔗 頭像關聯分析</div>
             <p class="correlation-note">
                 <strong>分析未能執行</strong>，本次結果不包含頭像關聯資訊。
                 錯誤訊息：{{ report.correlation_error }}
+            </p>
+        </div>
+        {% elif not report.avatar_stats %}
+        <div class="correlation-block">
+            <div class="profiles-title">🔗 頭像關聯分析</div>
+            <p class="correlation-note">
+                已啟用頭像關聯分析，但本次查詢<strong>沒有擷取到任何帳號頭像</strong>
+                （找到的 {{ report.claimed_profiles | length }} 個帳號均無可用頭像網址），無法進行比對。
             </p>
         </div>
         {% elif report.avatar_stats %}
