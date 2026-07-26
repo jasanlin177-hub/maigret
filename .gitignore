@@ -58,5 +58,8 @@ deploy/oracle/data/
 deploy/oracle/caddy_data/
 deploy/oracle/caddy_config/
 
+# 本機執行時產生的使用次數計數器資料庫
+/data/
+
 # Sphinx i18n: .mo are compiled from .po at build time
 docs/source/locale/**/*.mo

@@ -438,6 +438,16 @@
                 <input type="checkbox" class="form-check-input" id="with_domains" name="with_domains">
                 <label class="form-check-label" for="with_domains">查詢網域</label>
             </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="correlate_avatars" name="correlate_avatars">
+                <label class="form-check-label" for="correlate_avatars">
+                    頭像關聯分析
+                    <span style="display:block;font-size:0.78rem;color:var(--text-muted);margin-top:2px;">
+                        比對各站頭像相似度，找出可能屬於同一人的帳號群組。
+                        需額外下載頭像圖片，查詢時間會增加約 20～40 秒。
+                    </span>
+                </label>
+            </div>
             <div class="mb-3">
                 <label for="proxy" class="form-label">代理伺服器 URL</label>
                 <input type="text" class="form-control" id="proxy" name="proxy"

@@ -14,7 +14,7 @@ import logging
 import os
 import sqlite3
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 from threading import Thread, Lock
 from typing import Any, Dict
@@ -23,6 +23,7 @@ import maigret.settings
 from maigret.checking import build_cloudflare_bypass_config
 from maigret.sites import MaigretDatabase
 from maigret.report import generate_report_context
+from maigret.correlation import correlate_avatars
 
 app = Flask(__name__)
 # Use environment variable for secret key, generate random one if not set
@@ -118,8 +119,13 @@ def inject_counters():
     }
 
 
-# 統一以臺灣時區顯示時間，避免伺服器所在地時區不同造成誤解
-TAIPEI_TZ = ZoneInfo("Asia/Taipei")
+# 統一以臺灣時區顯示時間，避免伺服器所在地時區不同造成誤解。
+# 部分環境（如未安裝 tzdata 套件的 Windows）沒有 IANA 時區資料庫，
+# 此時退回固定 UTC+8 偏移；臺灣不實施日光節約時間，兩者結果一致。
+try:
+    TAIPEI_TZ = ZoneInfo("Asia/Taipei")
+except Exception:  # pragma: no cover - 僅在缺少 tzdata 的環境觸發
+    TAIPEI_TZ = timezone(timedelta(hours=8))
 
 
 def format_duration(seconds: float) -> str:
@@ -266,23 +272,45 @@ def process_search_task(usernames, options, timestamp, started_at):
             maigret.report.save_html_report(html_path, context)
 
             claimed_profiles = []
+            site_avatars = {}
             for site_name, site_data in results.items():
                 if (
                     site_data.get('status')
                     and site_data['status'].status
                     == maigret.result.MaigretCheckStatus.CLAIMED
                 ):
+                    status_obj = site_data.get('status')
+                    ids_data = (status_obj.ids_data or {}) if status_obj else {}
+                    avatar_url = ids_data.get('image', '')
+                    if avatar_url:
+                        site_avatars[site_name] = avatar_url
                     claimed_profiles.append(
                         {
                             'site_name': site_name,
                             'url': site_data.get('url_user', ''),
                             'tags': (
-                                site_data.get('status').tags
-                                if site_data.get('status')
-                                else []
+                                status_obj.tags if status_obj else []
                             ),
                         }
                     )
+
+            # 頭像關聯分析（選用）：比對各站頭像視覺相似度，
+            # 找出可能屬於同一人的帳號群組。失敗不影響主要查詢結果。
+            avatar_clusters = []
+            if options.get('correlate_avatars') and site_avatars:
+                try:
+                    clusters = loop.run_until_complete(
+                        correlate_avatars(site_avatars, logger=logging.getLogger('maigret'))
+                    )
+                    avatar_clusters = [
+                        {
+                            'cluster_id': c.cluster_id,
+                            'site_names': c.site_names,
+                        }
+                        for c in clusters
+                    ]
+                except Exception as e:
+                    logging.warning(f"頭像關聯分析失敗（不影響查詢結果）：{e}")
 
             individual_reports.append(
                 {
@@ -292,6 +320,8 @@ def process_search_task(usernames, options, timestamp, started_at):
                     'json_file': f"search_{timestamp}/report_{safe_username}.json",
                     'html_file': f"search_{timestamp}/report_{safe_username}.html",
                     'claimed_profiles': claimed_profiles,
+                    'avatar_clusters': avatar_clusters,
+                    'avatar_count': len(site_avatars),
                 }
             )
 
@@ -366,6 +396,7 @@ def search():
         'tor_proxy': request.form.get('tor_proxy', None) or None,
         'i2p_proxy': request.form.get('i2p_proxy', None) or None,
         'permute': 'permute' in request.form,
+        'correlate_avatars': 'correlate_avatars' in request.form,
         'tags': selected_tags,  # Pass selected tags as a list
         'excluded_tags': excluded_tags,  # Pass excluded tags as a list
         'site_list': [

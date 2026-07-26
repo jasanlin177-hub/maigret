@@ -137,6 +137,48 @@
         margin-bottom: 0.75rem;
         text-transform: uppercase;
     }
+
+    /* ── 頭像關聯分析 ── */
+    .correlation-block {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1rem 1.15rem;
+        margin-bottom: 1.25rem;
+    }
+    .correlation-note {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        line-height: 1.55;
+        margin: 0 0 0.85rem;
+    }
+    .correlation-note strong { color: var(--warning, #f59e0b); }
+    .cluster-item {
+        border-left: 3px solid var(--accent);
+        padding: 0.5rem 0 0.5rem 0.75rem;
+        margin-bottom: 0.7rem;
+    }
+    .cluster-item:last-child { margin-bottom: 0; }
+    .cluster-label {
+        font-size: 0.78rem;
+        color: var(--text-primary);
+        font-weight: 500;
+        margin-bottom: 0.4rem;
+    }
+    .cluster-sites {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+    .cluster-site-badge {
+        background: var(--accent-glow);
+        border: 1px solid rgba(59,130,246,0.25);
+        color: var(--accent);
+        padding: 2px 9px;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        font-family: 'SF Mono', ui-monospace, monospace;
+    }
     .profile-list {
         list-style: none;
         padding: 0;
@@ -407,6 +449,36 @@
                 ↓ HTML　🖨 可列印成 PDF
             </a>
         </div>
+
+        <!-- 頭像關聯分析結果 -->
+        {% if report.avatar_clusters %}
+        <div class="correlation-block">
+            <div class="profiles-title">🔗 頭像關聯分析（{{ report.avatar_clusters | length }} 組）</div>
+            <p class="correlation-note">
+                以下各組帳號的頭像視覺高度相似，<strong>可能</strong>屬於同一人。
+                本結果僅為輔助線索，不足以單獨作為同一人之認定依據，請務必人工核實。
+            </p>
+            {% for cluster in report.avatar_clusters %}
+            <div class="cluster-item">
+                <div class="cluster-label">第 {{ loop.index }} 組（{{ cluster.site_names | length }} 個帳號頭像相似）</div>
+                <div class="cluster-sites">
+                    {% for site in cluster.site_names %}
+                    <span class="cluster-site-badge">{{ site }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% elif report.avatar_count is defined and report.avatar_count > 0 %}
+        <div class="correlation-block">
+            <div class="profiles-title">🔗 頭像關聯分析</div>
+            <p class="correlation-note">
+                已比對 {{ report.avatar_count }} 個帳號的頭像，<strong>未發現</strong>視覺相似的群組。
+                這代表各帳號使用不同頭像，無法藉頭像判斷關聯性
+                （不代表這些帳號一定不屬於同一人）。
+            </p>
+        </div>
+        {% endif %}
 
         <!-- 找到的帳號 -->
         {% if report.claimed_profiles %}
