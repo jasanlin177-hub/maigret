@@ -27,4 +27,9 @@ FROM base AS web
 RUN pip install --no-cache-dir openpyxl Pillow tzdata
 ENV PORT=5000
 EXPOSE 5000
-ENTRYPOINT ["sh", "-c", "exec maigret --web \"$PORT\""]
+# --no-autoupdate：停用內建的 24 小時自動更新資料庫機制。
+# 該機制會從 upstream soxoj/maigret（非本 fork）下載官方站點資料庫並
+# 快取於 ~/.maigret/data.json，一旦觸發就會整份覆蓋掉本 fork 客製的
+# 臺灣站點（如蝦皮 ShopeeTW）與手動啟用的站點設定，且沒有任何告警。
+# 之後如需同步 upstream 的站點修補，應改為手動比對合併，而非讓它自動整份覆蓋。
+ENTRYPOINT ["sh", "-c", "exec maigret --web \"$PORT\" --no-autoupdate"]
