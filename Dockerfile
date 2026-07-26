@@ -23,7 +23,8 @@ ENTRYPOINT ["maigret"]
 # Web UI variant (default): auto-launches the web interface on $PORT
 FROM base AS web
 # openpyxl 供 Excel 報告下載；PDF 改用瀏覽器列印 HTML 報告，不再裝 [pdf]
-RUN pip install --no-cache-dir openpyxl
+# Pillow 供頭像關聯分析（dHash 計算）；tzdata 供臺灣時區顯示
+RUN pip install --no-cache-dir openpyxl Pillow tzdata
 ENV PORT=5000
 EXPOSE 5000
 ENTRYPOINT ["sh", "-c", "exec maigret --web \"$PORT\""]
